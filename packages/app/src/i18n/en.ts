@@ -38,7 +38,6 @@ export const dict = {
   "command.session.previous.unseen": "Previous unread session",
   "command.session.next.unseen": "Next unread session",
   "command.session.archive": "Archive session",
-  "command.session.index": "Open session index",
 
   "command.palette": "Command palette",
 
@@ -51,17 +50,6 @@ export const dict = {
   "command.language.set": "Use language: {{language}}",
 
   "command.session.new": "New session",
-  "session.index.title": "Open sessions",
-  "session.index.description": "Switch between or close sessions in this window.",
-  "session.index.projectFilter": "Filter sessions by project",
-  "session.index.allProjects": "All projects",
-  "session.index.unknownProject": "Unknown project",
-  "session.index.empty": "No open sessions",
-  "session.index.status.working": "Working",
-  "session.index.status.permission": "Needs permission",
-  "session.index.status.error": "Error",
-  "session.index.status.unread": "Unread",
-  "session.index.status.open": "Open",
   "workflow.run.eyebrow": "Workflow run",
   "workflow.run.description": "Live workflow state, handoffs, and estimated model cost.",
   "workflow.run.loading": "Loading workflow run...",

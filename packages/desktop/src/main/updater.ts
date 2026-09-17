@@ -1,47 +1,27 @@
-import { app, dialog, shell } from "electron"
-import { UPDATER_ENABLED, UPSTREAM_MERGE_URL, UPSTREAM_RELEASES_URL } from "./constants"
+import { app, dialog } from "electron"
+import pkg from "electron-updater"
+import { UPDATER_ENABLED } from "./constants"
 import { createUpdaterController, type UpdaterReadyRecord } from "./updater-controller"
 import { getLogger } from "./logging"
 import { getStore } from "./store"
+import { setAppQuitting } from "./windows"
 import { nativeT } from "./native-translations"
 
+const { autoUpdater } = pkg
 const key = "ready"
 
-function normalizeVersion(value: string) {
-  return value.trim().replace(/^v/i, "")
-}
-
-function isNewerVersion(latest: string, current: string) {
-  const left = normalizeVersion(latest).split(".").map((part) => Number.parseInt(part, 10) || 0)
-  const right = normalizeVersion(current).split(".").map((part) => Number.parseInt(part, 10) || 0)
-  const length = Math.max(left.length, right.length)
-  for (let index = 0; index < length; index++) {
-    const a = left[index] ?? 0
-    const b = right[index] ?? 0
-    if (a > b) return true
-    if (a < b) return false
-  }
-  return false
-}
-
-async function checkUpstreamRelease(currentVersion: string) {
-  const response = await fetch(UPSTREAM_RELEASES_URL, {
-    headers: { Accept: "application/vnd.github+json" },
-  })
-  if (!response.ok) throw new Error(`Upstream release check failed (${response.status})`)
-  const payload = (await response.json()) as { tag_name?: string }
-  const version = payload.tag_name ? normalizeVersion(payload.tag_name) : undefined
-  if (!version) return { isUpdateAvailable: false, updateInfo: { version: currentVersion } }
-  return {
-    isUpdateAvailable: isNewerVersion(version, currentVersion),
-    updateInfo: { version },
-  }
-}
-
-export function setupAutoUpdater(_stop: () => Promise<void>) {
+export function setupAutoUpdater(stop: () => Promise<void>) {
   const logger = getLogger()
+  autoUpdater.logger = logger
+  autoUpdater.channel = "latest"
+  autoUpdater.allowPrerelease = false
+  autoUpdater.allowDowngrade = true
+  autoUpdater.autoDownload = false
+  autoUpdater.autoInstallOnAppQuit = false
   logger.log("auto updater configured", {
-    mode: "upstream-merge",
+    channel: autoUpdater.channel,
+    allowPrerelease: autoUpdater.allowPrerelease,
+    allowDowngrade: autoUpdater.allowDowngrade,
     currentVersion: app.getVersion(),
   })
 
@@ -49,12 +29,21 @@ export function setupAutoUpdater(_stop: () => Promise<void>) {
   return createUpdaterController({
     enabled: UPDATER_ENABLED,
     currentVersion: app.getVersion(),
-    skipDownload: true,
     backend: {
-      checkForUpdates: () => checkUpstreamRelease(app.getVersion()),
-      downloadUpdate: async () => undefined,
+      checkForUpdates: () => autoUpdater.checkForUpdates(),
+      downloadUpdate: () => autoUpdater.downloadUpdate(),
       quitAndInstall: () => {
-        void shell.openExternal(UPSTREAM_MERGE_URL)
+        // quitAndInstall closes all windows before emitting before-quit, so
+        // flag the quit first to keep window ids persisted for restore.
+        setAppQuitting()
+        try {
+          autoUpdater.quitAndInstall()
+        } catch (error) {
+          // The install failed and the app keeps running; clear the flag so
+          // deliberate window closes prune ids again.
+          setAppQuitting(false)
+          throw error
+        }
       },
     },
     persistence: {
@@ -66,7 +55,7 @@ export function setupAutoUpdater(_stop: () => Promise<void>) {
       set: (value) => store.set(key, value),
       clear: () => store.delete(key),
     },
-    stop: async () => undefined,
+    stop,
     log: (message, data) => logger.log(message, data),
   })
 }
@@ -95,11 +84,11 @@ export async function showUpdaterDialog(controller: ReturnType<typeof setupAutoU
 
   const response = await dialog.showMessageBox({
     type: "info",
-    message: nativeT("desktop.updater.dialog.merge.message", { version: state.version }),
-    title: nativeT("desktop.updater.dialog.merge.title"),
-    buttons: [nativeT("desktop.updater.dialog.merge.open"), nativeT("desktop.updater.dialog.later")],
+    message: nativeT("desktop.updater.dialog.ready.message", { version: state.version }),
+    title: nativeT("desktop.updater.dialog.ready.title"),
+    buttons: [nativeT("desktop.updater.dialog.restart"), nativeT("desktop.updater.dialog.later")],
     defaultId: 0,
     cancelId: 1,
   })
-  if (response.response === 0) void shell.openExternal(UPSTREAM_MERGE_URL)
+  if (response.response === 0) await controller.install()
 }

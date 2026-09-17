@@ -18,9 +18,6 @@ export const dict = {
   "desktop.updater.downloaded.prompt": "OpenCode {{version}} 已下载。是否安装并重新启动？",
   "desktop.updater.installFailed.title": "更新失败",
   "desktop.updater.installFailed.message": "无法安装更新",
-  "desktop.updater.dialog.merge.title": "上游有新版本",
-  "desktop.updater.dialog.merge.message": "OpenCode {{version}} 已发布。请将上游版本合并到当前 fork。",
-  "desktop.updater.dialog.merge.open": "打开 GitHub",
 
   "desktop.cli.installed.title": "CLI 已安装",
   "desktop.cli.installed.message": "CLI 已安装到 {{path}}\n\n重启终端以使用 'opencode' 命令。",
