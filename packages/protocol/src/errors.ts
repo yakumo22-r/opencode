@@ -109,3 +109,21 @@ export class PtyNotFoundError extends Schema.TaggedErrorClass<PtyNotFoundError>(
   },
   { httpApiStatus: 404 },
 ) {}
+
+export class WorkflowTemplateNotFoundError extends Schema.TaggedErrorClass<WorkflowTemplateNotFoundError>()(
+  "WorkflowTemplateNotFoundError",
+  {
+    templateID: Schema.String,
+    message: Schema.String,
+  },
+  { httpApiStatus: 404 },
+) {}
+
+export class WorkflowRunNotFoundError extends Schema.TaggedErrorClass<WorkflowRunNotFoundError>()(
+  "WorkflowRunNotFoundError",
+  {
+    runID: Schema.String,
+    message: Schema.String,
+  },
+  { httpApiStatus: 404 },
+) {}

@@ -12,6 +12,8 @@ import { Cause, DateTime, Effect, FiberSet, Layer, Option, Semaphore, Stream } f
 import { AgentV2 } from "../../agent"
 import { Config } from "../../config"
 import { Database } from "../../database/database"
+import { Workflow } from "../../workflow"
+import { WorkflowRunTable, WorkflowWorkItemTable } from "../../workflow/sql"
 import { EventV2 } from "../../event"
 import { Location } from "../../location"
 import { ModelV2 } from "../../model"
@@ -39,6 +41,7 @@ import { MAX_STEPS_PROMPT } from "./max-steps"
 import { Snapshot } from "../../snapshot"
 import { makeLocationNode } from "../../effect/app-node"
 import { llmClient } from "../../effect/app-node-platform"
+import { eq } from "drizzle-orm"
 
 /**
  * Runs one durable coding-agent Session until it settles.
@@ -183,6 +186,7 @@ const layer = Layer.effect(
       const initialized = yield* SessionContextEpoch.initialize(db, loadSystemContext(agent), session.id)
       const toolFibers = yield* FiberSet.make<void, ToolOutputStore.Error>()
       let needsContinuation = false
+      let terminalWorkflowAction = false
       let currentStep = step
       if (promotion) {
         const cutoff = yield* EventV2.latestSequence(db, session.id)
@@ -200,7 +204,27 @@ const layer = Layer.effect(
       const entries = yield* SessionHistory.entriesForRunner(db, session.id, system.baselineSeq)
       const context = entries.map((entry) => entry.message)
       const isLastStep = agent.info?.steps !== undefined && currentStep >= agent.info.steps
-      const toolMaterialization = isLastStep ? undefined : yield* tools.materialize(agent.info?.permissions)
+      const workflowItem = yield* db
+        .select({ runID: WorkflowWorkItemTable.run_id, nodeID: WorkflowWorkItemTable.node_id })
+        .from(WorkflowWorkItemTable)
+        .where(eq(WorkflowWorkItemTable.session_id, session.id))
+        .pipe(
+          Effect.map((items) => items[0]),
+          Effect.catch(() => Effect.succeed(undefined)),
+        )
+      const materialized = isLastStep
+        ? undefined
+        : yield* tools.materialize(agent.info?.permissions, { workflow: workflowItem !== undefined })
+      const allowed = workflowItem ? yield* workflowToolNames(db, workflowItem.runID, workflowItem.nodeID) : undefined
+      const toolMaterialization =
+        materialized && allowed
+          ? {
+              ...materialized,
+              definitions: materialized.definitions.filter(
+                (definition) => allowed.has(definition.name) || definition.name.startsWith("workflow_"),
+              ),
+            }
+          : materialized
       const promptCacheKey = /^ses_[0-9a-f]{64}$/.test(session.id) ? session.id.slice(4) : session.id
       const request = LLM.request({
         model,
@@ -252,7 +276,10 @@ const layer = Layer.effect(
               yield* withPublication(publisher.failUnsettledTools("Tools are disabled after the maximum agent steps"))
               return
             }
-            needsContinuation = true
+            // These workflow actions deliberately end the current provider turn.
+            // A waiting node resumes only after its workflow queue wakes it.
+            if (isWorkflowTerminalTool(event.name)) terminalWorkflowAction = true
+            else needsContinuation = true
             const assistantMessageID = yield* publisher.assistantMessageID(event.id)
             yield* Effect.uninterruptibleMask((restore) =>
               restore(
@@ -349,7 +376,10 @@ const layer = Layer.effect(
           if (stream._tag === "Failure") return yield* Effect.failCause(stream.cause)
           if (settled._tag === "Failure" && Cause.hasInterrupts(settled.cause))
             return yield* Effect.failCause(settled.cause)
-          return { needsContinuation: !publisher.hasProviderError() && needsContinuation, step: currentStep }
+          return {
+            needsContinuation: !publisher.hasProviderError() && !terminalWorkflowAction && needsContinuation,
+            step: currentStep,
+          }
         }),
       )
     }, Effect.scoped)
@@ -437,3 +467,23 @@ export const node = makeLocationNode({
     Database.node,
   ],
 })
+
+function isWorkflowTerminalTool(name: string) {
+  return name === "workflow_complete_work_item"
+}
+
+function workflowToolNames(db: Database.Interface["db"], runID: string, nodeID: string) {
+  return Effect.gen(function* () {
+    const run = yield* db
+      .select({ graph: WorkflowRunTable.graph })
+      .from(WorkflowRunTable)
+      .where(eq(WorkflowRunTable.id, runID))
+      .pipe(
+        Effect.map((rows) => rows[0]),
+        Effect.catch(() => Effect.succeed(undefined)),
+      )
+    const tools = (run?.graph as Workflow.Graph | undefined)?.nodes.find((node) => node.id === nodeID)?.config.tools
+    if (!Array.isArray(tools) || tools.length === 0) return
+    return new Set(tools.filter((item): item is string => typeof item === "string"))
+  })
+}

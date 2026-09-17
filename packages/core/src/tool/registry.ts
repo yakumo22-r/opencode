@@ -9,7 +9,7 @@ import { SessionSchema } from "../session/schema"
 import { ToolOutputStore } from "../tool-output-store"
 import { Wildcard } from "../util/wildcard"
 import { ApplicationTools } from "./application-tools"
-import { definition, permission, settle, validateName, type AnyTool, type RegistrationError } from "./tool"
+import { definition, permission, scope, settle, validateName, type AnyTool, type RegistrationError } from "./tool"
 import { Tools } from "./tools"
 import { makeLocationNode } from "../effect/app-node"
 
@@ -21,7 +21,7 @@ export type ExecuteInput = {
 }
 
 export interface Interface {
-  readonly materialize: (permissions?: PermissionV2.Ruleset) => Effect.Effect<Materialization>
+  readonly materialize: (permissions?: PermissionV2.Ruleset, options?: { readonly workflow?: boolean }) => Effect.Effect<Materialization>
   /** Internal registration capability exposed publicly only through Tools.Service. */
   readonly register: (tools: Readonly<Record<string, AnyTool>>) => Effect.Effect<void, RegistrationError, Scope.Scope>
 }
@@ -103,7 +103,7 @@ const registryLayer = Layer.effect(
           }),
         )
       }),
-      materialize: Effect.fn("ToolRegistry.materialize")(function* (permissions = []) {
+      materialize: Effect.fn("ToolRegistry.materialize")(function* (permissions = [], options = {}) {
         const registrations = new Map(applications.entries())
         for (const [name, entries] of local) {
           const registration = entries.at(-1)?.registration
@@ -111,6 +111,9 @@ const registryLayer = Layer.effect(
         }
         for (const [name, registration] of registrations)
           if (whollyDisabled(permission(registration.tool, name), permissions)) registrations.delete(name)
+        if (!options.workflow)
+          for (const [name, registration] of registrations)
+            if (scope(registration.tool) === "workflow") registrations.delete(name)
         return {
           definitions: Array.from(registrations, ([name, registration]) => definition(name, registration.tool)),
           settle: (input) => {

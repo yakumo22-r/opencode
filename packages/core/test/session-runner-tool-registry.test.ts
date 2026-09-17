@@ -59,6 +59,28 @@ const make = (permission?: string) => {
 }
 
 describe("ToolRegistry", () => {
+  it.effect("only materializes workflow tools for workflow sessions", () =>
+    Effect.gen(function* () {
+      const service = yield* ToolRegistry.Service
+      yield* service.register({
+        ordinary: make(),
+        workflow_only: Tool.make({
+          scope: "workflow",
+          description: "Workflow-only tool",
+          input: Schema.Struct({ text: Schema.String }),
+          output: Schema.Struct({ text: Schema.String }),
+          execute: ({ text }) => Effect.succeed({ text }),
+        }),
+      })
+
+      expect((yield* service.materialize()).definitions.map((tool) => tool.name)).toEqual(["ordinary"])
+      expect((yield* service.materialize([], { workflow: true })).definitions.map((tool) => tool.name)).toEqual([
+        "ordinary",
+        "workflow_only",
+      ])
+    }),
+  )
+
   it.effect("filters disabled tools with edit aliases and ordered wildcard precedence", () =>
     Effect.gen(function* () {
       const service = yield* ToolRegistry.Service

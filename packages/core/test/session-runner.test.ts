@@ -148,6 +148,12 @@ const echo = Layer.effectDiscard(
         output: Schema.Struct({}),
         execute: () => Effect.die("unexpected tool defect"),
       }),
+      workflow_wait_for_handoff: Tool.make({
+        description: "Wait for workflow input",
+        input: Schema.Struct({}),
+        output: Schema.Struct({ waiting: Schema.Literal(true) }),
+        execute: () => Effect.succeed({ waiting: true as const }),
+      }),
     }),
   ),
 )
@@ -646,7 +652,7 @@ describe("SessionRunnerLLM", () => {
 
       expect(requests).toHaveLength(1)
       expect(requests[0]?.model).toBe(model)
-      expect(requests[0]?.tools.map((tool) => tool.name)).toEqual(["echo", "defect"])
+      expect(requests[0]?.tools.map((tool) => tool.name)).toEqual(expect.arrayContaining(["echo", "defect"]))
       expect(requests[0]?.messages.map((message) => ({ role: message.role, content: message.content }))).toEqual([
         { role: "user", content: [{ type: "text", text: "First" }] },
         { role: "user", content: [{ type: "text", text: "Second" }] },
@@ -1429,7 +1435,7 @@ describe("SessionRunnerLLM", () => {
       yield* session.resume(sessionID)
 
       expect(requests).toHaveLength(1)
-      expect(requests[0]?.tools.map((tool) => tool.name)).toEqual(["echo", "defect"])
+      expect(requests[0]?.tools.map((tool) => tool.name)).toEqual(expect.arrayContaining(["echo", "defect"]))
       expect(yield* session.context(sessionID)).toMatchObject([
         { type: "user", text: "Use tools" },
         {
@@ -1523,6 +1529,41 @@ describe("SessionRunnerLLM", () => {
           ],
         },
         { type: "assistant", finish: "stop", content: [{ type: "text", id: "text-final", text: "Done" }] },
+      ])
+    }),
+  )
+
+  it.effect("stops provider continuation after workflow wait tools", () =>
+    Effect.gen(function* () {
+      yield* setup
+      const session = yield* SessionV2.Service
+      yield* session.prompt({ sessionID, prompt: Prompt.make({ text: "Wait for a handoff" }), resume: false })
+      requests.length = 0
+      responses = [
+        [
+          LLMEvent.stepStart({ index: 0 }),
+          LLMEvent.toolCall({ id: "wait", name: "workflow_wait_for_handoff", input: {} }),
+          LLMEvent.stepFinish({ index: 0, reason: "tool-calls" }),
+          LLMEvent.finish({ reason: "tool-calls" }),
+        ],
+        fragmentFixture("text", "should-not-run", ["This continuation must not run"]).completeEvents,
+      ]
+
+      yield* session.resume(sessionID)
+
+      expect(requests).toHaveLength(1)
+      expect(yield* session.context(sessionID)).toMatchObject([
+        { type: "user", text: "Wait for a handoff" },
+        {
+          type: "assistant",
+          content: [
+            {
+              type: "tool",
+              name: "workflow_wait_for_handoff",
+              state: { status: "completed", structured: { waiting: true } },
+            },
+          ],
+        },
       ])
     }),
   )

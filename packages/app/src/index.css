@@ -3,6 +3,19 @@
 @import "@opencode-ai/ui/v2/styles/tailwind.css";
 @import "tw-animate-css";
 
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
 @font-face {
   font-family: "JetBrainsMono Nerd Font Mono";
   src: url("/assets/JetBrainsMonoNerdFontMono-Regular.woff2") format("woff2");

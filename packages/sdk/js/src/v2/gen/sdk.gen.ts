@@ -385,6 +385,40 @@ import type {
   V2SessionWaitResponses,
   V2SkillListErrors,
   V2SkillListResponses,
+  V2WorkflowExecuteErrors,
+  V2WorkflowExecuteResponses,
+  V2WorkflowHandoffQueueAcknowledgeErrors,
+  V2WorkflowHandoffQueueAcknowledgeResponses,
+  V2WorkflowHandoffQueueReadErrors,
+  V2WorkflowHandoffQueueReadResponses,
+  V2WorkflowHandoffSendErrors,
+  V2WorkflowHandoffSendResponses,
+  V2WorkflowHistoryErrors,
+  V2WorkflowHistoryResponses,
+  V2WorkflowRunAdvanceErrors,
+  V2WorkflowRunAdvanceResponses,
+  V2WorkflowRunCostErrors,
+  V2WorkflowRunCostResponses,
+  V2WorkflowRunCreateErrors,
+  V2WorkflowRunCreateResponses,
+  V2WorkflowRunDrainErrors,
+  V2WorkflowRunDrainResponses,
+  V2WorkflowRunGetErrors,
+  V2WorkflowRunGetResponses,
+  V2WorkflowRunListErrors,
+  V2WorkflowRunListResponses,
+  V2WorkflowRunWorkItemsErrors,
+  V2WorkflowRunWorkItemsResponses,
+  V2WorkflowTemplateCreateErrors,
+  V2WorkflowTemplateCreateResponses,
+  V2WorkflowTemplateGetErrors,
+  V2WorkflowTemplateGetResponses,
+  V2WorkflowTemplateListErrors,
+  V2WorkflowTemplateListResponses,
+  V2WorkflowTemplateUpdateErrors,
+  V2WorkflowTemplateUpdateResponses,
+  V2WorkflowWorkItemUpdateErrors,
+  V2WorkflowWorkItemUpdateResponses,
   VcsApplyErrors,
   VcsApplyResponses,
   VcsDiffErrors,
@@ -395,6 +429,8 @@ import type {
   VcsGetResponses,
   VcsStatusErrors,
   VcsStatusResponses,
+  WorkflowGraph,
+  WorkflowWorkItemStatus,
   WorktreeCreateErrors,
   WorktreeCreateInput,
   WorktreeCreateResponses,
@@ -6987,6 +7023,554 @@ export class ProjectCopy2 extends HeyApiClient {
   }
 }
 
+export class Template extends HeyApiClient {
+  /**
+   * List workflow templates
+   *
+   * Retrieve workflow templates, optionally filtered by project.
+   */
+  public list<ThrowOnError extends boolean = false>(
+    parameters?: {
+      projectID?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "query", key: "projectID" }] }])
+    return (options?.client ?? this.client).get<
+      V2WorkflowTemplateListResponses,
+      V2WorkflowTemplateListErrors,
+      ThrowOnError
+    >({
+      url: "/api/workflow/template",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Create workflow template
+   *
+   * Validate and persist a workflow template graph.
+   */
+  public create<ThrowOnError extends boolean = false>(
+    parameters?: {
+      projectID?: string
+      title?: string
+      description?: string
+      graph?: WorkflowGraph
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "body", key: "projectID" },
+            { in: "body", key: "title" },
+            { in: "body", key: "description" },
+            { in: "body", key: "graph" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      V2WorkflowTemplateCreateResponses,
+      V2WorkflowTemplateCreateErrors,
+      ThrowOnError
+    >({
+      url: "/api/workflow/template",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * Get workflow template
+   *
+   * Retrieve a workflow template by ID.
+   */
+  public get<ThrowOnError extends boolean = false>(
+    parameters: {
+      templateID: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "path", key: "templateID" }] }])
+    return (options?.client ?? this.client).get<
+      V2WorkflowTemplateGetResponses,
+      V2WorkflowTemplateGetErrors,
+      ThrowOnError
+    >({
+      url: "/api/workflow/template/{templateID}",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Update workflow template
+   *
+   * Validate and persist a new version of a workflow template graph.
+   */
+  public update<ThrowOnError extends boolean = false>(
+    parameters: {
+      templateID: string
+      title?: string
+      description?: string
+      graph?: WorkflowGraph
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "templateID" },
+            { in: "body", key: "title" },
+            { in: "body", key: "description" },
+            { in: "body", key: "graph" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).put<
+      V2WorkflowTemplateUpdateResponses,
+      V2WorkflowTemplateUpdateErrors,
+      ThrowOnError
+    >({
+      url: "/api/workflow/template/{templateID}",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+}
+
+export class Run extends HeyApiClient {
+  /**
+   * List workflow runs
+   *
+   * Retrieve workflow runs, optionally filtered by project, ordered by recent activity.
+   */
+  public list<ThrowOnError extends boolean = false>(
+    parameters?: {
+      projectID?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "query", key: "projectID" }] }])
+    return (options?.client ?? this.client).get<V2WorkflowRunListResponses, V2WorkflowRunListErrors, ThrowOnError>({
+      url: "/api/workflow/run",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Create workflow run
+   *
+   * Create an immutable run snapshot from a workflow template.
+   */
+  public create<ThrowOnError extends boolean = false>(
+    parameters?: {
+      templateID?: string
+      input?: unknown
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "body", key: "templateID" },
+            { in: "body", key: "input" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<V2WorkflowRunCreateResponses, V2WorkflowRunCreateErrors, ThrowOnError>(
+      {
+        url: "/api/workflow/run",
+        ...options,
+        ...params,
+        headers: {
+          "Content-Type": "application/json",
+          ...options?.headers,
+          ...params.headers,
+        },
+      },
+    )
+  }
+
+  /**
+   * Get workflow run
+   *
+   * Retrieve a workflow run snapshot by ID.
+   */
+  public get<ThrowOnError extends boolean = false>(
+    parameters: {
+      runID: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "path", key: "runID" }] }])
+    return (options?.client ?? this.client).get<V2WorkflowRunGetResponses, V2WorkflowRunGetErrors, ThrowOnError>({
+      url: "/api/workflow/run/{runID}",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * List workflow work items
+   *
+   * Retrieve work item states for a workflow run.
+   */
+  public workItems<ThrowOnError extends boolean = false>(
+    parameters: {
+      runID: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "path", key: "runID" }] }])
+    return (options?.client ?? this.client).get<
+      V2WorkflowRunWorkItemsResponses,
+      V2WorkflowRunWorkItemsErrors,
+      ThrowOnError
+    >({
+      url: "/api/workflow/run/{runID}/work-item",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Get workflow run cost
+   *
+   * Project session usage and return estimated USD cost grouped by provider and model.
+   */
+  public cost<ThrowOnError extends boolean = false>(
+    parameters: {
+      runID: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "path", key: "runID" }] }])
+    return (options?.client ?? this.client).get<V2WorkflowRunCostResponses, V2WorkflowRunCostErrors, ThrowOnError>({
+      url: "/api/workflow/run/{runID}/cost",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Drain ready workflow work items
+   *
+   * Admit durable Session inputs for ready work items without starting provider execution.
+   */
+  public drain<ThrowOnError extends boolean = false>(
+    parameters: {
+      runID: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "path", key: "runID" }] }])
+    return (options?.client ?? this.client).post<V2WorkflowRunDrainResponses, V2WorkflowRunDrainErrors, ThrowOnError>({
+      url: "/api/workflow/run/{runID}/drain",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Advance a workflow run until idle
+   *
+   * Repeatedly drain and execute eligible work items until the run has no ready or running nodes.
+   */
+  public advance<ThrowOnError extends boolean = false>(
+    parameters: {
+      runID: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "path", key: "runID" }] }])
+    return (options?.client ?? this.client).post<
+      V2WorkflowRunAdvanceResponses,
+      V2WorkflowRunAdvanceErrors,
+      ThrowOnError
+    >({
+      url: "/api/workflow/run/{runID}/advance",
+      ...options,
+      ...params,
+    })
+  }
+}
+
+export class WorkItem extends HeyApiClient {
+  /**
+   * Update workflow work item
+   *
+   * Change a work item state through the workflow state machine; completion requires sealed artifact outputs.
+   */
+  public update<ThrowOnError extends boolean = false>(
+    parameters: {
+      runID: string
+      nodeID: string
+      status?: WorkflowWorkItemStatus
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "runID" },
+            { in: "path", key: "nodeID" },
+            { in: "body", key: "status" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      V2WorkflowWorkItemUpdateResponses,
+      V2WorkflowWorkItemUpdateErrors,
+      ThrowOnError
+    >({
+      url: "/api/workflow/run/{runID}/work-item/{nodeID}",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+}
+
+export class Queue extends HeyApiClient {
+  /**
+   * Read workflow handoff queue
+   *
+   * Read unacknowledged messages delivered to a node queue input port.
+   */
+  public read<ThrowOnError extends boolean = false>(
+    parameters: {
+      runID: string
+      nodeID: string
+      port: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "runID" },
+            { in: "path", key: "nodeID" },
+            { in: "path", key: "port" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<
+      V2WorkflowHandoffQueueReadResponses,
+      V2WorkflowHandoffQueueReadErrors,
+      ThrowOnError
+    >({
+      url: "/api/workflow/run/{runID}/queue/{nodeID}/{port}",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Acknowledge workflow handoff queue
+   *
+   * Advance the durable queue cursor through a delivered handoff sequence.
+   */
+  public acknowledge<ThrowOnError extends boolean = false>(
+    parameters: {
+      runID: string
+      nodeID: string
+      port: string
+      sequence?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "runID" },
+            { in: "path", key: "nodeID" },
+            { in: "path", key: "port" },
+            { in: "body", key: "sequence" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      V2WorkflowHandoffQueueAcknowledgeResponses,
+      V2WorkflowHandoffQueueAcknowledgeErrors,
+      ThrowOnError
+    >({
+      url: "/api/workflow/run/{runID}/queue/{nodeID}/{port}/acknowledge",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+}
+
+export class Handoff extends HeyApiClient {
+  /**
+   * Send workflow handoff
+   *
+   * Deliver a sealed dependency artifact or a queue message through a validated workflow edge.
+   */
+  public send<ThrowOnError extends boolean = false>(
+    parameters: {
+      runID: string
+      sourceNodeID?: string
+      sourcePort?: string
+      targetNodeID?: string
+      targetPort?: string
+      payload?: unknown
+      sealed?: boolean
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "runID" },
+            { in: "body", key: "sourceNodeID" },
+            { in: "body", key: "sourcePort" },
+            { in: "body", key: "targetNodeID" },
+            { in: "body", key: "targetPort" },
+            { in: "body", key: "payload" },
+            { in: "body", key: "sealed" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      V2WorkflowHandoffSendResponses,
+      V2WorkflowHandoffSendErrors,
+      ThrowOnError
+    >({
+      url: "/api/workflow/run/{runID}/handoff",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  private _queue?: Queue
+  get queue(): Queue {
+    return (this._queue ??= new Queue({ client: this.client }))
+  }
+}
+
+export class Workflow extends HeyApiClient {
+  /**
+   * Get workflow run history
+   *
+   * Read one finite page of durable workflow events after an exclusive Run aggregate sequence.
+   */
+  public history<ThrowOnError extends boolean = false>(
+    parameters: {
+      runID: string
+      limit?: string
+      after?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "runID" },
+            { in: "query", key: "limit" },
+            { in: "query", key: "after" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<V2WorkflowHistoryResponses, V2WorkflowHistoryErrors, ThrowOnError>({
+      url: "/api/workflow/run/{runID}/history",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Execute workflow work items
+   *
+   * Resume admitted Session work for running workflow items and settle idle items into waiting.
+   */
+  public execute<ThrowOnError extends boolean = false>(
+    parameters: {
+      runID: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "path", key: "runID" }] }])
+    return (options?.client ?? this.client).post<V2WorkflowExecuteResponses, V2WorkflowExecuteErrors, ThrowOnError>({
+      url: "/api/workflow/run/{runID}/execute",
+      ...options,
+      ...params,
+    })
+  }
+
+  private _template?: Template
+  get template(): Template {
+    return (this._template ??= new Template({ client: this.client }))
+  }
+
+  private _run?: Run
+  get run(): Run {
+    return (this._run ??= new Run({ client: this.client }))
+  }
+
+  private _workItem?: WorkItem
+  get workItem(): WorkItem {
+    return (this._workItem ??= new WorkItem({ client: this.client }))
+  }
+
+  private _handoff?: Handoff
+  get handoff(): Handoff {
+    return (this._handoff ??= new Handoff({ client: this.client }))
+  }
+}
+
 export class V2 extends HeyApiClient {
   private _health?: Health
   get health(): Health {
@@ -7071,6 +7655,11 @@ export class V2 extends HeyApiClient {
   private _projectCopy?: ProjectCopy2
   get projectCopy(): ProjectCopy2 {
     return (this._projectCopy ??= new ProjectCopy2({ client: this.client }))
+  }
+
+  private _workflow?: Workflow
+  get workflow(): Workflow {
+    return (this._workflow ??= new Workflow({ client: this.client }))
   }
 }
 

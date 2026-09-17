@@ -40,5 +40,11 @@ export const migrations = (
     import("./migration/20260622142730_simplify_session_context_epoch"),
     import("./migration/20260622170816_reset_v2_session_state"),
     import("./migration/20260622202450_simplify_session_input"),
+    import("./migration/20260907084535_workflow_templates"),
+    import("./migration/20260908075913_workflow_handoffs"),
+    import("./migration/20260908080441_workflow_work_items"),
+    import("./migration/20260908081238_workflow_work_item_session"),
+    import("./migration/20260908095528_workflow_attempt_cost_source"),
+    import("./migration/20260909143000_workflow_optional_project"),
   ])
 ).map((module) => module.default) satisfies DatabaseMigration.Migration[]

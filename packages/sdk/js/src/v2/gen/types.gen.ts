@@ -2960,6 +2960,87 @@ export type ProjectCopyError = {
   }
 }
 
+export type WorkflowTemplatesResponse = {
+  data: Array<WorkflowTemplate>
+}
+
+export type WorkflowTemplateResponse = {
+  data: WorkflowTemplate
+}
+
+export type WorkflowTemplateUpdateResponse = {
+  data: WorkflowTemplate
+}
+
+export type WorkflowTemplateNotFoundError = {
+  _tag: "WorkflowTemplateNotFoundError"
+  templateID: string
+  message: string
+}
+
+export type WorkflowTemplateGetResponse = {
+  data: WorkflowTemplate
+}
+
+export type WorkflowRunResponse = {
+  data: WorkflowRun
+}
+
+export type WorkflowRunsResponse = {
+  data: Array<WorkflowRun>
+}
+
+export type WorkflowRunGetResponse = {
+  data: WorkflowRun
+}
+
+export type WorkflowRunNotFoundError = {
+  _tag: "WorkflowRunNotFoundError"
+  runID: string
+  message: string
+}
+
+export type WorkflowHistoryResponse = {
+  data: Array<WorkflowWorkItemStatusChanged | WorkflowHandoffSent | WorkflowQueueAcknowledged>
+  hasMore: boolean
+}
+
+export type WorkflowWorkItemsResponse = {
+  data: Array<WorkflowWorkItem>
+}
+
+export type WorkflowWorkItemResponse = {
+  data: WorkflowWorkItem
+}
+
+export type WorkflowCostResponse = {
+  data: WorkflowCostReport
+}
+
+export type WorkflowHandoffResponse = {
+  data: WorkflowHandoff
+}
+
+export type WorkflowQueueResponse = {
+  data: Array<WorkflowHandoff>
+}
+
+export type WorkflowQueueAcknowledgeResponse = {
+  data: null
+}
+
+export type WorkflowDrainResponse = {
+  data: Array<WorkflowWorkItem>
+}
+
+export type WorkflowExecuteResponse = {
+  data: Array<WorkflowWorkItem>
+}
+
+export type WorkflowAdvanceResponse = {
+  data: Array<WorkflowWorkItem>
+}
+
 export type EffectHttpApiErrorForbidden = {
   _tag: "Forbidden"
 }
@@ -6152,6 +6233,222 @@ export type ReferenceInfo = {
 
 export type ProjectCopyCopy = {
   directory: string
+}
+
+export type WorkflowNodeKind = "task" | "research" | "implement" | "review" | "test" | "approval"
+
+export type WorkflowHandoffType =
+  | "task_spec"
+  | "plan"
+  | "research"
+  | "patch"
+  | "review"
+  | "test_result"
+  | "summary"
+  | "generic_document"
+
+export type WorkflowInputPort = {
+  handoffTypes: Array<WorkflowHandoffType>
+  required: boolean
+  many: boolean
+  mode: "dependency" | "queue"
+}
+
+export type WorkflowOutputPort = {
+  handoffType: WorkflowHandoffType
+  many: boolean
+  mode: "artifact" | "message"
+}
+
+export type WorkflowNode = {
+  id: string
+  kind: WorkflowNodeKind
+  title: string
+  objective: string
+  agentProfileID?: string
+  model?: ModelRef
+  promptFile?: string
+  inputs: {
+    [key: string]: WorkflowInputPort
+  }
+  outputs: {
+    [key: string]: WorkflowOutputPort
+  }
+  workspace: {
+    mode: "read" | "write" | "isolated-write" | "none"
+    directory?: string
+  }
+  config: {
+    [key: string]: unknown
+  }
+  display: {
+    x: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+    y: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+  }
+}
+
+export type WorkflowEdge = {
+  id: string
+  sourceNodeID: string
+  sourcePort: string
+  targetNodeID: string
+  targetPort: string
+  condition?: "success" | "failure"
+}
+
+export type WorkflowGraph = {
+  nodes: Array<WorkflowNode>
+  edges: Array<WorkflowEdge>
+  promptFile?: string
+}
+
+export type WorkflowTemplate = {
+  id: string
+  projectID?: string
+  title: string
+  description?: string
+  version: number
+  graph: WorkflowGraph
+  time: {
+    created: number
+    updated: number
+  }
+}
+
+export type WorkflowRun = {
+  id: string
+  templateID: string
+  projectID?: string
+  templateVersion: number
+  status: "ready"
+  graph: WorkflowGraph
+  input: unknown
+  time: {
+    created: number
+    updated: number
+  }
+}
+
+export type WorkflowWorkItemStatus =
+  | "pending"
+  | "ready"
+  | "running"
+  | "waiting"
+  | "blocked"
+  | "completed"
+  | "failed"
+  | "cancelled"
+
+export type WorkflowWorkItemStatusChanged = {
+  id: string
+  metadata?: {
+    [key: string]: unknown
+  }
+  type: "workflow.work-item.status-changed"
+  durable?: {
+    aggregateID: string
+    seq: number
+    version: number
+  }
+  location?: LocationRef
+  data: {
+    timestamp: number
+    runID: string
+    nodeID: string
+    status: WorkflowWorkItemStatus
+    sessionID?: string
+  }
+}
+
+export type WorkflowHandoff = {
+  id: string
+  runID: string
+  sourceNodeID: string
+  sourcePort: string
+  targetNodeID: string
+  targetPort: string
+  mode: "dependency" | "queue"
+  payload: unknown
+  sequence: number
+  sealed: boolean
+  time: {
+    created: number
+  }
+}
+
+export type WorkflowHandoffSent = {
+  id: string
+  metadata?: {
+    [key: string]: unknown
+  }
+  type: "workflow.handoff.sent"
+  durable?: {
+    aggregateID: string
+    seq: number
+    version: number
+  }
+  location?: LocationRef
+  data: {
+    timestamp: number
+    runID: string
+    handoff: WorkflowHandoff
+  }
+}
+
+export type WorkflowQueueAcknowledged = {
+  id: string
+  metadata?: {
+    [key: string]: unknown
+  }
+  type: "workflow.queue.acknowledged"
+  durable?: {
+    aggregateID: string
+    seq: number
+    version: number
+  }
+  location?: LocationRef
+  data: {
+    timestamp: number
+    runID: string
+    nodeID: string
+    port: string
+    sequence: number
+  }
+}
+
+export type WorkflowWorkItem = {
+  runID: string
+  nodeID: string
+  status: WorkflowWorkItemStatus
+  sessionID?: string
+  time: {
+    created: number
+    updated: number
+  }
+}
+
+export type WorkflowTokenUsage = {
+  input: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+  output: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+  reasoning: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+  cacheRead: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+  cacheWrite: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+}
+
+export type WorkflowCostGroup = {
+  providerID: string
+  modelID: string
+  usage: WorkflowTokenUsage
+  estimatedMicrousd?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+  pricedAttempts: number
+  unpricedAttempts: number
+}
+
+export type WorkflowCostReport = {
+  runID: string
+  estimatedMicrousd?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+  unpricedAttempts: number
+  groups: Array<WorkflowCostGroup>
 }
 
 export type EventModelsDevRefreshed = {
@@ -13587,6 +13884,622 @@ export type V2ProjectCopyRefreshResponses = {
 }
 
 export type V2ProjectCopyRefreshResponse = V2ProjectCopyRefreshResponses[keyof V2ProjectCopyRefreshResponses]
+
+export type V2WorkflowTemplateListData = {
+  body?: never
+  path?: never
+  query?: {
+    projectID?: string
+  }
+  url: "/api/workflow/template"
+}
+
+export type V2WorkflowTemplateListErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+}
+
+export type V2WorkflowTemplateListError = V2WorkflowTemplateListErrors[keyof V2WorkflowTemplateListErrors]
+
+export type V2WorkflowTemplateListResponses = {
+  /**
+   * WorkflowTemplatesResponse
+   */
+  200: WorkflowTemplatesResponse
+}
+
+export type V2WorkflowTemplateListResponse = V2WorkflowTemplateListResponses[keyof V2WorkflowTemplateListResponses]
+
+export type V2WorkflowTemplateCreateData = {
+  body: {
+    projectID?: string
+    title: string
+    description?: string
+    graph: WorkflowGraph
+  }
+  path?: never
+  query?: never
+  url: "/api/workflow/template"
+}
+
+export type V2WorkflowTemplateCreateErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+}
+
+export type V2WorkflowTemplateCreateError = V2WorkflowTemplateCreateErrors[keyof V2WorkflowTemplateCreateErrors]
+
+export type V2WorkflowTemplateCreateResponses = {
+  /**
+   * WorkflowTemplateResponse
+   */
+  200: WorkflowTemplateResponse
+}
+
+export type V2WorkflowTemplateCreateResponse =
+  V2WorkflowTemplateCreateResponses[keyof V2WorkflowTemplateCreateResponses]
+
+export type V2WorkflowTemplateGetData = {
+  body?: never
+  path: {
+    templateID: string
+  }
+  query?: never
+  url: "/api/workflow/template/{templateID}"
+}
+
+export type V2WorkflowTemplateGetErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+  /**
+   * WorkflowTemplateNotFoundError
+   */
+  404: WorkflowTemplateNotFoundError
+}
+
+export type V2WorkflowTemplateGetError = V2WorkflowTemplateGetErrors[keyof V2WorkflowTemplateGetErrors]
+
+export type V2WorkflowTemplateGetResponses = {
+  /**
+   * WorkflowTemplateGetResponse
+   */
+  200: WorkflowTemplateGetResponse
+}
+
+export type V2WorkflowTemplateGetResponse = V2WorkflowTemplateGetResponses[keyof V2WorkflowTemplateGetResponses]
+
+export type V2WorkflowTemplateUpdateData = {
+  body: {
+    title?: string
+    description?: string
+    graph: WorkflowGraph
+  }
+  path: {
+    templateID: string
+  }
+  query?: never
+  url: "/api/workflow/template/{templateID}"
+}
+
+export type V2WorkflowTemplateUpdateErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+  /**
+   * WorkflowTemplateNotFoundError
+   */
+  404: WorkflowTemplateNotFoundError
+}
+
+export type V2WorkflowTemplateUpdateError = V2WorkflowTemplateUpdateErrors[keyof V2WorkflowTemplateUpdateErrors]
+
+export type V2WorkflowTemplateUpdateResponses = {
+  /**
+   * WorkflowTemplateUpdateResponse
+   */
+  200: WorkflowTemplateUpdateResponse
+}
+
+export type V2WorkflowTemplateUpdateResponse =
+  V2WorkflowTemplateUpdateResponses[keyof V2WorkflowTemplateUpdateResponses]
+
+export type V2WorkflowRunListData = {
+  body?: never
+  path?: never
+  query?: {
+    projectID?: string
+  }
+  url: "/api/workflow/run"
+}
+
+export type V2WorkflowRunListErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+}
+
+export type V2WorkflowRunListError = V2WorkflowRunListErrors[keyof V2WorkflowRunListErrors]
+
+export type V2WorkflowRunListResponses = {
+  /**
+   * WorkflowRunsResponse
+   */
+  200: WorkflowRunsResponse
+}
+
+export type V2WorkflowRunListResponse = V2WorkflowRunListResponses[keyof V2WorkflowRunListResponses]
+
+export type V2WorkflowRunCreateData = {
+  body: {
+    templateID: string
+    input?: unknown
+  }
+  path?: never
+  query?: never
+  url: "/api/workflow/run"
+}
+
+export type V2WorkflowRunCreateErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+  /**
+   * WorkflowTemplateNotFoundError
+   */
+  404: WorkflowTemplateNotFoundError
+}
+
+export type V2WorkflowRunCreateError = V2WorkflowRunCreateErrors[keyof V2WorkflowRunCreateErrors]
+
+export type V2WorkflowRunCreateResponses = {
+  /**
+   * WorkflowRunResponse
+   */
+  200: WorkflowRunResponse
+}
+
+export type V2WorkflowRunCreateResponse = V2WorkflowRunCreateResponses[keyof V2WorkflowRunCreateResponses]
+
+export type V2WorkflowRunGetData = {
+  body?: never
+  path: {
+    runID: string
+  }
+  query?: never
+  url: "/api/workflow/run/{runID}"
+}
+
+export type V2WorkflowRunGetErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+  /**
+   * WorkflowRunNotFoundError
+   */
+  404: WorkflowRunNotFoundError
+}
+
+export type V2WorkflowRunGetError = V2WorkflowRunGetErrors[keyof V2WorkflowRunGetErrors]
+
+export type V2WorkflowRunGetResponses = {
+  /**
+   * WorkflowRunGetResponse
+   */
+  200: WorkflowRunGetResponse
+}
+
+export type V2WorkflowRunGetResponse = V2WorkflowRunGetResponses[keyof V2WorkflowRunGetResponses]
+
+export type V2WorkflowHistoryData = {
+  body?: never
+  path: {
+    runID: string
+  }
+  query?: {
+    limit?: string
+    after?: string
+  }
+  url: "/api/workflow/run/{runID}/history"
+}
+
+export type V2WorkflowHistoryErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+  /**
+   * WorkflowRunNotFoundError
+   */
+  404: WorkflowRunNotFoundError
+}
+
+export type V2WorkflowHistoryError = V2WorkflowHistoryErrors[keyof V2WorkflowHistoryErrors]
+
+export type V2WorkflowHistoryResponses = {
+  /**
+   * WorkflowHistoryResponse
+   */
+  200: WorkflowHistoryResponse
+}
+
+export type V2WorkflowHistoryResponse = V2WorkflowHistoryResponses[keyof V2WorkflowHistoryResponses]
+
+export type V2WorkflowRunWorkItemsData = {
+  body?: never
+  path: {
+    runID: string
+  }
+  query?: never
+  url: "/api/workflow/run/{runID}/work-item"
+}
+
+export type V2WorkflowRunWorkItemsErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+  /**
+   * WorkflowRunNotFoundError
+   */
+  404: WorkflowRunNotFoundError
+}
+
+export type V2WorkflowRunWorkItemsError = V2WorkflowRunWorkItemsErrors[keyof V2WorkflowRunWorkItemsErrors]
+
+export type V2WorkflowRunWorkItemsResponses = {
+  /**
+   * WorkflowWorkItemsResponse
+   */
+  200: WorkflowWorkItemsResponse
+}
+
+export type V2WorkflowRunWorkItemsResponse = V2WorkflowRunWorkItemsResponses[keyof V2WorkflowRunWorkItemsResponses]
+
+export type V2WorkflowWorkItemUpdateData = {
+  body: {
+    status: WorkflowWorkItemStatus
+  }
+  path: {
+    runID: string
+    nodeID: string
+  }
+  query?: never
+  url: "/api/workflow/run/{runID}/work-item/{nodeID}"
+}
+
+export type V2WorkflowWorkItemUpdateErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+  /**
+   * WorkflowRunNotFoundError
+   */
+  404: WorkflowRunNotFoundError
+}
+
+export type V2WorkflowWorkItemUpdateError = V2WorkflowWorkItemUpdateErrors[keyof V2WorkflowWorkItemUpdateErrors]
+
+export type V2WorkflowWorkItemUpdateResponses = {
+  /**
+   * WorkflowWorkItemResponse
+   */
+  200: WorkflowWorkItemResponse
+}
+
+export type V2WorkflowWorkItemUpdateResponse =
+  V2WorkflowWorkItemUpdateResponses[keyof V2WorkflowWorkItemUpdateResponses]
+
+export type V2WorkflowRunCostData = {
+  body?: never
+  path: {
+    runID: string
+  }
+  query?: never
+  url: "/api/workflow/run/{runID}/cost"
+}
+
+export type V2WorkflowRunCostErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+  /**
+   * WorkflowRunNotFoundError
+   */
+  404: WorkflowRunNotFoundError
+}
+
+export type V2WorkflowRunCostError = V2WorkflowRunCostErrors[keyof V2WorkflowRunCostErrors]
+
+export type V2WorkflowRunCostResponses = {
+  /**
+   * WorkflowCostResponse
+   */
+  200: WorkflowCostResponse
+}
+
+export type V2WorkflowRunCostResponse = V2WorkflowRunCostResponses[keyof V2WorkflowRunCostResponses]
+
+export type V2WorkflowHandoffSendData = {
+  body: {
+    sourceNodeID: string
+    sourcePort: string
+    targetNodeID: string
+    targetPort: string
+    payload: unknown
+    sealed?: boolean
+  }
+  path: {
+    runID: string
+  }
+  query?: never
+  url: "/api/workflow/run/{runID}/handoff"
+}
+
+export type V2WorkflowHandoffSendErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+  /**
+   * WorkflowRunNotFoundError
+   */
+  404: WorkflowRunNotFoundError
+}
+
+export type V2WorkflowHandoffSendError = V2WorkflowHandoffSendErrors[keyof V2WorkflowHandoffSendErrors]
+
+export type V2WorkflowHandoffSendResponses = {
+  /**
+   * WorkflowHandoffResponse
+   */
+  200: WorkflowHandoffResponse
+}
+
+export type V2WorkflowHandoffSendResponse = V2WorkflowHandoffSendResponses[keyof V2WorkflowHandoffSendResponses]
+
+export type V2WorkflowHandoffQueueReadData = {
+  body?: never
+  path: {
+    runID: string
+    nodeID: string
+    port: string
+  }
+  query?: never
+  url: "/api/workflow/run/{runID}/queue/{nodeID}/{port}"
+}
+
+export type V2WorkflowHandoffQueueReadErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+  /**
+   * WorkflowRunNotFoundError
+   */
+  404: WorkflowRunNotFoundError
+}
+
+export type V2WorkflowHandoffQueueReadError = V2WorkflowHandoffQueueReadErrors[keyof V2WorkflowHandoffQueueReadErrors]
+
+export type V2WorkflowHandoffQueueReadResponses = {
+  /**
+   * WorkflowQueueResponse
+   */
+  200: WorkflowQueueResponse
+}
+
+export type V2WorkflowHandoffQueueReadResponse =
+  V2WorkflowHandoffQueueReadResponses[keyof V2WorkflowHandoffQueueReadResponses]
+
+export type V2WorkflowHandoffQueueAcknowledgeData = {
+  body: {
+    sequence: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+  }
+  path: {
+    runID: string
+    nodeID: string
+    port: string
+  }
+  query?: never
+  url: "/api/workflow/run/{runID}/queue/{nodeID}/{port}/acknowledge"
+}
+
+export type V2WorkflowHandoffQueueAcknowledgeErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+  /**
+   * WorkflowRunNotFoundError
+   */
+  404: WorkflowRunNotFoundError
+}
+
+export type V2WorkflowHandoffQueueAcknowledgeError =
+  V2WorkflowHandoffQueueAcknowledgeErrors[keyof V2WorkflowHandoffQueueAcknowledgeErrors]
+
+export type V2WorkflowHandoffQueueAcknowledgeResponses = {
+  /**
+   * WorkflowQueueAcknowledgeResponse
+   */
+  200: WorkflowQueueAcknowledgeResponse
+}
+
+export type V2WorkflowHandoffQueueAcknowledgeResponse =
+  V2WorkflowHandoffQueueAcknowledgeResponses[keyof V2WorkflowHandoffQueueAcknowledgeResponses]
+
+export type V2WorkflowRunDrainData = {
+  body?: never
+  path: {
+    runID: string
+  }
+  query?: never
+  url: "/api/workflow/run/{runID}/drain"
+}
+
+export type V2WorkflowRunDrainErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+  /**
+   * WorkflowRunNotFoundError
+   */
+  404: WorkflowRunNotFoundError
+}
+
+export type V2WorkflowRunDrainError = V2WorkflowRunDrainErrors[keyof V2WorkflowRunDrainErrors]
+
+export type V2WorkflowRunDrainResponses = {
+  /**
+   * WorkflowDrainResponse
+   */
+  200: WorkflowDrainResponse
+}
+
+export type V2WorkflowRunDrainResponse = V2WorkflowRunDrainResponses[keyof V2WorkflowRunDrainResponses]
+
+export type V2WorkflowExecuteData = {
+  body?: never
+  path: {
+    runID: string
+  }
+  query?: never
+  url: "/api/workflow/run/{runID}/execute"
+}
+
+export type V2WorkflowExecuteErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+  /**
+   * WorkflowRunNotFoundError
+   */
+  404: WorkflowRunNotFoundError
+}
+
+export type V2WorkflowExecuteError = V2WorkflowExecuteErrors[keyof V2WorkflowExecuteErrors]
+
+export type V2WorkflowExecuteResponses = {
+  /**
+   * WorkflowExecuteResponse
+   */
+  200: WorkflowExecuteResponse
+}
+
+export type V2WorkflowExecuteResponse = V2WorkflowExecuteResponses[keyof V2WorkflowExecuteResponses]
+
+export type V2WorkflowRunAdvanceData = {
+  body?: never
+  path: {
+    runID: string
+  }
+  query?: never
+  url: "/api/workflow/run/{runID}/advance"
+}
+
+export type V2WorkflowRunAdvanceErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+  /**
+   * WorkflowRunNotFoundError
+   */
+  404: WorkflowRunNotFoundError
+}
+
+export type V2WorkflowRunAdvanceError = V2WorkflowRunAdvanceErrors[keyof V2WorkflowRunAdvanceErrors]
+
+export type V2WorkflowRunAdvanceResponses = {
+  /**
+   * WorkflowAdvanceResponse
+   */
+  200: WorkflowAdvanceResponse
+}
+
+export type V2WorkflowRunAdvanceResponse = V2WorkflowRunAdvanceResponses[keyof V2WorkflowRunAdvanceResponses]
 
 export type PtyConnectData = {
   body?: never

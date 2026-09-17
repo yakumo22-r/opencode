@@ -101,6 +101,22 @@ export type ProjectCopyError = {
 export const isProjectCopyError = (value: unknown): value is ProjectCopyError =>
   typeof value === "object" && value !== null && "name" in value && value["name"] === "ProjectCopyError"
 
+export type WorkflowTemplateNotFoundError = {
+  readonly _tag: "WorkflowTemplateNotFoundError"
+  readonly templateID: string
+  readonly message: string
+}
+export const isWorkflowTemplateNotFoundError = (value: unknown): value is WorkflowTemplateNotFoundError =>
+  typeof value === "object" && value !== null && "_tag" in value && value["_tag"] === "WorkflowTemplateNotFoundError"
+
+export type WorkflowRunNotFoundError = {
+  readonly _tag: "WorkflowRunNotFoundError"
+  readonly runID: string
+  readonly message: string
+}
+export const isWorkflowRunNotFoundError = (value: unknown): value is WorkflowRunNotFoundError =>
+  typeof value === "object" && value !== null && "_tag" in value && value["_tag"] === "WorkflowRunNotFoundError"
+
 export type HealthGetOutput = { readonly healthy: true }
 
 export type LocationGetInput = {
@@ -2805,3 +2821,1112 @@ export type ProjectCopiesRefreshInput = {
 }
 
 export type ProjectCopiesRefreshOutput = void
+
+export type WorkflowListTemplatesInput = {
+  readonly projectID?: { readonly projectID?: string | undefined }["projectID"]
+}
+
+export type WorkflowListTemplatesOutput = {
+  readonly data: ReadonlyArray<{
+    readonly id: string
+    readonly projectID?: string
+    readonly title: string
+    readonly description?: string
+    readonly version: number
+    readonly graph: {
+      readonly nodes: ReadonlyArray<{
+        readonly id: string
+        readonly kind: "task" | "research" | "implement" | "review" | "test" | "approval"
+        readonly title: string
+        readonly objective: string
+        readonly agentProfileID?: string
+        readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string }
+        readonly promptFile?: string
+        readonly inputs: {
+          readonly [x: string]: {
+            readonly handoffTypes: ReadonlyArray<
+              "task_spec" | "plan" | "research" | "patch" | "review" | "test_result" | "summary" | "generic_document"
+            >
+            readonly required: boolean
+            readonly many: boolean
+            readonly mode: "dependency" | "queue"
+          }
+        }
+        readonly outputs: {
+          readonly [x: string]: {
+            readonly handoffType:
+              | "task_spec"
+              | "plan"
+              | "research"
+              | "patch"
+              | "review"
+              | "test_result"
+              | "summary"
+              | "generic_document"
+            readonly many: boolean
+            readonly mode: "artifact" | "message"
+          }
+        }
+        readonly workspace: { readonly mode: "read" | "write" | "isolated-write" | "none"; readonly directory?: string }
+        readonly config: { readonly [x: string]: JsonValue }
+        readonly display: {
+          readonly x: number | "Infinity" | "-Infinity" | "NaN"
+          readonly y: number | "Infinity" | "-Infinity" | "NaN"
+        }
+      }>
+      readonly edges: ReadonlyArray<{
+        readonly id: string
+        readonly sourceNodeID: string
+        readonly sourcePort: string
+        readonly targetNodeID: string
+        readonly targetPort: string
+        readonly condition?: "success" | "failure"
+      }>
+      readonly promptFile?: string
+    }
+    readonly time: { readonly created: number; readonly updated: number }
+  }>
+}["data"]
+
+export type WorkflowCreateTemplateInput = {
+  readonly projectID?: {
+    readonly projectID?: string | null
+    readonly title: string
+    readonly description?: string | null
+    readonly graph: {
+      readonly nodes: ReadonlyArray<{
+        readonly id: string
+        readonly kind: "task" | "research" | "implement" | "review" | "test" | "approval"
+        readonly title: string
+        readonly objective: string
+        readonly agentProfileID?: string
+        readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string }
+        readonly promptFile?: string
+        readonly inputs: {
+          readonly [x: string]: {
+            readonly handoffTypes: ReadonlyArray<
+              "task_spec" | "plan" | "research" | "patch" | "review" | "test_result" | "summary" | "generic_document"
+            >
+            readonly required: boolean
+            readonly many: boolean
+            readonly mode: "dependency" | "queue"
+          }
+        }
+        readonly outputs: {
+          readonly [x: string]: {
+            readonly handoffType:
+              | "task_spec"
+              | "plan"
+              | "research"
+              | "patch"
+              | "review"
+              | "test_result"
+              | "summary"
+              | "generic_document"
+            readonly many: boolean
+            readonly mode: "artifact" | "message"
+          }
+        }
+        readonly workspace: { readonly mode: "read" | "write" | "isolated-write" | "none"; readonly directory?: string }
+        readonly config: { readonly [x: string]: JsonValue }
+        readonly display: {
+          readonly x: number | "Infinity" | "-Infinity" | "NaN"
+          readonly y: number | "Infinity" | "-Infinity" | "NaN"
+        }
+      }>
+      readonly edges: ReadonlyArray<{
+        readonly id: string
+        readonly sourceNodeID: string
+        readonly sourcePort: string
+        readonly targetNodeID: string
+        readonly targetPort: string
+        readonly condition?: "success" | "failure"
+      }>
+      readonly promptFile?: string
+    }
+  }["projectID"]
+  readonly title: {
+    readonly projectID?: string | null
+    readonly title: string
+    readonly description?: string | null
+    readonly graph: {
+      readonly nodes: ReadonlyArray<{
+        readonly id: string
+        readonly kind: "task" | "research" | "implement" | "review" | "test" | "approval"
+        readonly title: string
+        readonly objective: string
+        readonly agentProfileID?: string
+        readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string }
+        readonly promptFile?: string
+        readonly inputs: {
+          readonly [x: string]: {
+            readonly handoffTypes: ReadonlyArray<
+              "task_spec" | "plan" | "research" | "patch" | "review" | "test_result" | "summary" | "generic_document"
+            >
+            readonly required: boolean
+            readonly many: boolean
+            readonly mode: "dependency" | "queue"
+          }
+        }
+        readonly outputs: {
+          readonly [x: string]: {
+            readonly handoffType:
+              | "task_spec"
+              | "plan"
+              | "research"
+              | "patch"
+              | "review"
+              | "test_result"
+              | "summary"
+              | "generic_document"
+            readonly many: boolean
+            readonly mode: "artifact" | "message"
+          }
+        }
+        readonly workspace: { readonly mode: "read" | "write" | "isolated-write" | "none"; readonly directory?: string }
+        readonly config: { readonly [x: string]: JsonValue }
+        readonly display: {
+          readonly x: number | "Infinity" | "-Infinity" | "NaN"
+          readonly y: number | "Infinity" | "-Infinity" | "NaN"
+        }
+      }>
+      readonly edges: ReadonlyArray<{
+        readonly id: string
+        readonly sourceNodeID: string
+        readonly sourcePort: string
+        readonly targetNodeID: string
+        readonly targetPort: string
+        readonly condition?: "success" | "failure"
+      }>
+      readonly promptFile?: string
+    }
+  }["title"]
+  readonly description?: {
+    readonly projectID?: string | null
+    readonly title: string
+    readonly description?: string | null
+    readonly graph: {
+      readonly nodes: ReadonlyArray<{
+        readonly id: string
+        readonly kind: "task" | "research" | "implement" | "review" | "test" | "approval"
+        readonly title: string
+        readonly objective: string
+        readonly agentProfileID?: string
+        readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string }
+        readonly promptFile?: string
+        readonly inputs: {
+          readonly [x: string]: {
+            readonly handoffTypes: ReadonlyArray<
+              "task_spec" | "plan" | "research" | "patch" | "review" | "test_result" | "summary" | "generic_document"
+            >
+            readonly required: boolean
+            readonly many: boolean
+            readonly mode: "dependency" | "queue"
+          }
+        }
+        readonly outputs: {
+          readonly [x: string]: {
+            readonly handoffType:
+              | "task_spec"
+              | "plan"
+              | "research"
+              | "patch"
+              | "review"
+              | "test_result"
+              | "summary"
+              | "generic_document"
+            readonly many: boolean
+            readonly mode: "artifact" | "message"
+          }
+        }
+        readonly workspace: { readonly mode: "read" | "write" | "isolated-write" | "none"; readonly directory?: string }
+        readonly config: { readonly [x: string]: JsonValue }
+        readonly display: {
+          readonly x: number | "Infinity" | "-Infinity" | "NaN"
+          readonly y: number | "Infinity" | "-Infinity" | "NaN"
+        }
+      }>
+      readonly edges: ReadonlyArray<{
+        readonly id: string
+        readonly sourceNodeID: string
+        readonly sourcePort: string
+        readonly targetNodeID: string
+        readonly targetPort: string
+        readonly condition?: "success" | "failure"
+      }>
+      readonly promptFile?: string
+    }
+  }["description"]
+  readonly graph: {
+    readonly projectID?: string | null
+    readonly title: string
+    readonly description?: string | null
+    readonly graph: {
+      readonly nodes: ReadonlyArray<{
+        readonly id: string
+        readonly kind: "task" | "research" | "implement" | "review" | "test" | "approval"
+        readonly title: string
+        readonly objective: string
+        readonly agentProfileID?: string
+        readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string }
+        readonly promptFile?: string
+        readonly inputs: {
+          readonly [x: string]: {
+            readonly handoffTypes: ReadonlyArray<
+              "task_spec" | "plan" | "research" | "patch" | "review" | "test_result" | "summary" | "generic_document"
+            >
+            readonly required: boolean
+            readonly many: boolean
+            readonly mode: "dependency" | "queue"
+          }
+        }
+        readonly outputs: {
+          readonly [x: string]: {
+            readonly handoffType:
+              | "task_spec"
+              | "plan"
+              | "research"
+              | "patch"
+              | "review"
+              | "test_result"
+              | "summary"
+              | "generic_document"
+            readonly many: boolean
+            readonly mode: "artifact" | "message"
+          }
+        }
+        readonly workspace: { readonly mode: "read" | "write" | "isolated-write" | "none"; readonly directory?: string }
+        readonly config: { readonly [x: string]: JsonValue }
+        readonly display: {
+          readonly x: number | "Infinity" | "-Infinity" | "NaN"
+          readonly y: number | "Infinity" | "-Infinity" | "NaN"
+        }
+      }>
+      readonly edges: ReadonlyArray<{
+        readonly id: string
+        readonly sourceNodeID: string
+        readonly sourcePort: string
+        readonly targetNodeID: string
+        readonly targetPort: string
+        readonly condition?: "success" | "failure"
+      }>
+      readonly promptFile?: string
+    }
+  }["graph"]
+}
+
+export type WorkflowCreateTemplateOutput = {
+  readonly data: {
+    readonly id: string
+    readonly projectID?: string
+    readonly title: string
+    readonly description?: string
+    readonly version: number
+    readonly graph: {
+      readonly nodes: ReadonlyArray<{
+        readonly id: string
+        readonly kind: "task" | "research" | "implement" | "review" | "test" | "approval"
+        readonly title: string
+        readonly objective: string
+        readonly agentProfileID?: string
+        readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string }
+        readonly promptFile?: string
+        readonly inputs: {
+          readonly [x: string]: {
+            readonly handoffTypes: ReadonlyArray<
+              "task_spec" | "plan" | "research" | "patch" | "review" | "test_result" | "summary" | "generic_document"
+            >
+            readonly required: boolean
+            readonly many: boolean
+            readonly mode: "dependency" | "queue"
+          }
+        }
+        readonly outputs: {
+          readonly [x: string]: {
+            readonly handoffType:
+              | "task_spec"
+              | "plan"
+              | "research"
+              | "patch"
+              | "review"
+              | "test_result"
+              | "summary"
+              | "generic_document"
+            readonly many: boolean
+            readonly mode: "artifact" | "message"
+          }
+        }
+        readonly workspace: { readonly mode: "read" | "write" | "isolated-write" | "none"; readonly directory?: string }
+        readonly config: { readonly [x: string]: JsonValue }
+        readonly display: {
+          readonly x: number | "Infinity" | "-Infinity" | "NaN"
+          readonly y: number | "Infinity" | "-Infinity" | "NaN"
+        }
+      }>
+      readonly edges: ReadonlyArray<{
+        readonly id: string
+        readonly sourceNodeID: string
+        readonly sourcePort: string
+        readonly targetNodeID: string
+        readonly targetPort: string
+        readonly condition?: "success" | "failure"
+      }>
+      readonly promptFile?: string
+    }
+    readonly time: { readonly created: number; readonly updated: number }
+  }
+}["data"]
+
+export type WorkflowUpdateTemplateInput = {
+  readonly templateID: { readonly templateID: string }["templateID"]
+  readonly title?: {
+    readonly title?: string | null
+    readonly description?: string | null
+    readonly graph: {
+      readonly nodes: ReadonlyArray<{
+        readonly id: string
+        readonly kind: "task" | "research" | "implement" | "review" | "test" | "approval"
+        readonly title: string
+        readonly objective: string
+        readonly agentProfileID?: string
+        readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string }
+        readonly promptFile?: string
+        readonly inputs: {
+          readonly [x: string]: {
+            readonly handoffTypes: ReadonlyArray<
+              "task_spec" | "plan" | "research" | "patch" | "review" | "test_result" | "summary" | "generic_document"
+            >
+            readonly required: boolean
+            readonly many: boolean
+            readonly mode: "dependency" | "queue"
+          }
+        }
+        readonly outputs: {
+          readonly [x: string]: {
+            readonly handoffType:
+              | "task_spec"
+              | "plan"
+              | "research"
+              | "patch"
+              | "review"
+              | "test_result"
+              | "summary"
+              | "generic_document"
+            readonly many: boolean
+            readonly mode: "artifact" | "message"
+          }
+        }
+        readonly workspace: { readonly mode: "read" | "write" | "isolated-write" | "none"; readonly directory?: string }
+        readonly config: { readonly [x: string]: JsonValue }
+        readonly display: {
+          readonly x: number | "Infinity" | "-Infinity" | "NaN"
+          readonly y: number | "Infinity" | "-Infinity" | "NaN"
+        }
+      }>
+      readonly edges: ReadonlyArray<{
+        readonly id: string
+        readonly sourceNodeID: string
+        readonly sourcePort: string
+        readonly targetNodeID: string
+        readonly targetPort: string
+        readonly condition?: "success" | "failure"
+      }>
+      readonly promptFile?: string
+    }
+  }["title"]
+  readonly description?: {
+    readonly title?: string | null
+    readonly description?: string | null
+    readonly graph: {
+      readonly nodes: ReadonlyArray<{
+        readonly id: string
+        readonly kind: "task" | "research" | "implement" | "review" | "test" | "approval"
+        readonly title: string
+        readonly objective: string
+        readonly agentProfileID?: string
+        readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string }
+        readonly promptFile?: string
+        readonly inputs: {
+          readonly [x: string]: {
+            readonly handoffTypes: ReadonlyArray<
+              "task_spec" | "plan" | "research" | "patch" | "review" | "test_result" | "summary" | "generic_document"
+            >
+            readonly required: boolean
+            readonly many: boolean
+            readonly mode: "dependency" | "queue"
+          }
+        }
+        readonly outputs: {
+          readonly [x: string]: {
+            readonly handoffType:
+              | "task_spec"
+              | "plan"
+              | "research"
+              | "patch"
+              | "review"
+              | "test_result"
+              | "summary"
+              | "generic_document"
+            readonly many: boolean
+            readonly mode: "artifact" | "message"
+          }
+        }
+        readonly workspace: { readonly mode: "read" | "write" | "isolated-write" | "none"; readonly directory?: string }
+        readonly config: { readonly [x: string]: JsonValue }
+        readonly display: {
+          readonly x: number | "Infinity" | "-Infinity" | "NaN"
+          readonly y: number | "Infinity" | "-Infinity" | "NaN"
+        }
+      }>
+      readonly edges: ReadonlyArray<{
+        readonly id: string
+        readonly sourceNodeID: string
+        readonly sourcePort: string
+        readonly targetNodeID: string
+        readonly targetPort: string
+        readonly condition?: "success" | "failure"
+      }>
+      readonly promptFile?: string
+    }
+  }["description"]
+  readonly graph: {
+    readonly title?: string | null
+    readonly description?: string | null
+    readonly graph: {
+      readonly nodes: ReadonlyArray<{
+        readonly id: string
+        readonly kind: "task" | "research" | "implement" | "review" | "test" | "approval"
+        readonly title: string
+        readonly objective: string
+        readonly agentProfileID?: string
+        readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string }
+        readonly promptFile?: string
+        readonly inputs: {
+          readonly [x: string]: {
+            readonly handoffTypes: ReadonlyArray<
+              "task_spec" | "plan" | "research" | "patch" | "review" | "test_result" | "summary" | "generic_document"
+            >
+            readonly required: boolean
+            readonly many: boolean
+            readonly mode: "dependency" | "queue"
+          }
+        }
+        readonly outputs: {
+          readonly [x: string]: {
+            readonly handoffType:
+              | "task_spec"
+              | "plan"
+              | "research"
+              | "patch"
+              | "review"
+              | "test_result"
+              | "summary"
+              | "generic_document"
+            readonly many: boolean
+            readonly mode: "artifact" | "message"
+          }
+        }
+        readonly workspace: { readonly mode: "read" | "write" | "isolated-write" | "none"; readonly directory?: string }
+        readonly config: { readonly [x: string]: JsonValue }
+        readonly display: {
+          readonly x: number | "Infinity" | "-Infinity" | "NaN"
+          readonly y: number | "Infinity" | "-Infinity" | "NaN"
+        }
+      }>
+      readonly edges: ReadonlyArray<{
+        readonly id: string
+        readonly sourceNodeID: string
+        readonly sourcePort: string
+        readonly targetNodeID: string
+        readonly targetPort: string
+        readonly condition?: "success" | "failure"
+      }>
+      readonly promptFile?: string
+    }
+  }["graph"]
+}
+
+export type WorkflowUpdateTemplateOutput = {
+  readonly data: {
+    readonly id: string
+    readonly projectID?: string
+    readonly title: string
+    readonly description?: string
+    readonly version: number
+    readonly graph: {
+      readonly nodes: ReadonlyArray<{
+        readonly id: string
+        readonly kind: "task" | "research" | "implement" | "review" | "test" | "approval"
+        readonly title: string
+        readonly objective: string
+        readonly agentProfileID?: string
+        readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string }
+        readonly promptFile?: string
+        readonly inputs: {
+          readonly [x: string]: {
+            readonly handoffTypes: ReadonlyArray<
+              "task_spec" | "plan" | "research" | "patch" | "review" | "test_result" | "summary" | "generic_document"
+            >
+            readonly required: boolean
+            readonly many: boolean
+            readonly mode: "dependency" | "queue"
+          }
+        }
+        readonly outputs: {
+          readonly [x: string]: {
+            readonly handoffType:
+              | "task_spec"
+              | "plan"
+              | "research"
+              | "patch"
+              | "review"
+              | "test_result"
+              | "summary"
+              | "generic_document"
+            readonly many: boolean
+            readonly mode: "artifact" | "message"
+          }
+        }
+        readonly workspace: { readonly mode: "read" | "write" | "isolated-write" | "none"; readonly directory?: string }
+        readonly config: { readonly [x: string]: JsonValue }
+        readonly display: {
+          readonly x: number | "Infinity" | "-Infinity" | "NaN"
+          readonly y: number | "Infinity" | "-Infinity" | "NaN"
+        }
+      }>
+      readonly edges: ReadonlyArray<{
+        readonly id: string
+        readonly sourceNodeID: string
+        readonly sourcePort: string
+        readonly targetNodeID: string
+        readonly targetPort: string
+        readonly condition?: "success" | "failure"
+      }>
+      readonly promptFile?: string
+    }
+    readonly time: { readonly created: number; readonly updated: number }
+  }
+}["data"]
+
+export type WorkflowGetTemplateInput = { readonly templateID: { readonly templateID: string }["templateID"] }
+
+export type WorkflowGetTemplateOutput = {
+  readonly data: {
+    readonly id: string
+    readonly projectID?: string
+    readonly title: string
+    readonly description?: string
+    readonly version: number
+    readonly graph: {
+      readonly nodes: ReadonlyArray<{
+        readonly id: string
+        readonly kind: "task" | "research" | "implement" | "review" | "test" | "approval"
+        readonly title: string
+        readonly objective: string
+        readonly agentProfileID?: string
+        readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string }
+        readonly promptFile?: string
+        readonly inputs: {
+          readonly [x: string]: {
+            readonly handoffTypes: ReadonlyArray<
+              "task_spec" | "plan" | "research" | "patch" | "review" | "test_result" | "summary" | "generic_document"
+            >
+            readonly required: boolean
+            readonly many: boolean
+            readonly mode: "dependency" | "queue"
+          }
+        }
+        readonly outputs: {
+          readonly [x: string]: {
+            readonly handoffType:
+              | "task_spec"
+              | "plan"
+              | "research"
+              | "patch"
+              | "review"
+              | "test_result"
+              | "summary"
+              | "generic_document"
+            readonly many: boolean
+            readonly mode: "artifact" | "message"
+          }
+        }
+        readonly workspace: { readonly mode: "read" | "write" | "isolated-write" | "none"; readonly directory?: string }
+        readonly config: { readonly [x: string]: JsonValue }
+        readonly display: {
+          readonly x: number | "Infinity" | "-Infinity" | "NaN"
+          readonly y: number | "Infinity" | "-Infinity" | "NaN"
+        }
+      }>
+      readonly edges: ReadonlyArray<{
+        readonly id: string
+        readonly sourceNodeID: string
+        readonly sourcePort: string
+        readonly targetNodeID: string
+        readonly targetPort: string
+        readonly condition?: "success" | "failure"
+      }>
+      readonly promptFile?: string
+    }
+    readonly time: { readonly created: number; readonly updated: number }
+  }
+}["data"]
+
+export type WorkflowCreateRunInput = {
+  readonly templateID: { readonly templateID: string; readonly input?: JsonValue | undefined }["templateID"]
+  readonly input?: { readonly templateID: string; readonly input?: JsonValue | undefined }["input"]
+}
+
+export type WorkflowCreateRunOutput = {
+  readonly data: {
+    readonly id: string
+    readonly templateID: string
+    readonly projectID?: string
+    readonly templateVersion: number
+    readonly status: "ready"
+    readonly graph: {
+      readonly nodes: ReadonlyArray<{
+        readonly id: string
+        readonly kind: "task" | "research" | "implement" | "review" | "test" | "approval"
+        readonly title: string
+        readonly objective: string
+        readonly agentProfileID?: string
+        readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string }
+        readonly promptFile?: string
+        readonly inputs: {
+          readonly [x: string]: {
+            readonly handoffTypes: ReadonlyArray<
+              "task_spec" | "plan" | "research" | "patch" | "review" | "test_result" | "summary" | "generic_document"
+            >
+            readonly required: boolean
+            readonly many: boolean
+            readonly mode: "dependency" | "queue"
+          }
+        }
+        readonly outputs: {
+          readonly [x: string]: {
+            readonly handoffType:
+              | "task_spec"
+              | "plan"
+              | "research"
+              | "patch"
+              | "review"
+              | "test_result"
+              | "summary"
+              | "generic_document"
+            readonly many: boolean
+            readonly mode: "artifact" | "message"
+          }
+        }
+        readonly workspace: { readonly mode: "read" | "write" | "isolated-write" | "none"; readonly directory?: string }
+        readonly config: { readonly [x: string]: JsonValue }
+        readonly display: {
+          readonly x: number | "Infinity" | "-Infinity" | "NaN"
+          readonly y: number | "Infinity" | "-Infinity" | "NaN"
+        }
+      }>
+      readonly edges: ReadonlyArray<{
+        readonly id: string
+        readonly sourceNodeID: string
+        readonly sourcePort: string
+        readonly targetNodeID: string
+        readonly targetPort: string
+        readonly condition?: "success" | "failure"
+      }>
+      readonly promptFile?: string
+    }
+    readonly input: JsonValue
+    readonly time: { readonly created: number; readonly updated: number }
+  }
+}["data"]
+
+export type WorkflowListRunsInput = { readonly projectID?: { readonly projectID?: string | undefined }["projectID"] }
+
+export type WorkflowListRunsOutput = {
+  readonly data: ReadonlyArray<{
+    readonly id: string
+    readonly templateID: string
+    readonly projectID?: string
+    readonly templateVersion: number
+    readonly status: "ready"
+    readonly graph: {
+      readonly nodes: ReadonlyArray<{
+        readonly id: string
+        readonly kind: "task" | "research" | "implement" | "review" | "test" | "approval"
+        readonly title: string
+        readonly objective: string
+        readonly agentProfileID?: string
+        readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string }
+        readonly promptFile?: string
+        readonly inputs: {
+          readonly [x: string]: {
+            readonly handoffTypes: ReadonlyArray<
+              "task_spec" | "plan" | "research" | "patch" | "review" | "test_result" | "summary" | "generic_document"
+            >
+            readonly required: boolean
+            readonly many: boolean
+            readonly mode: "dependency" | "queue"
+          }
+        }
+        readonly outputs: {
+          readonly [x: string]: {
+            readonly handoffType:
+              | "task_spec"
+              | "plan"
+              | "research"
+              | "patch"
+              | "review"
+              | "test_result"
+              | "summary"
+              | "generic_document"
+            readonly many: boolean
+            readonly mode: "artifact" | "message"
+          }
+        }
+        readonly workspace: { readonly mode: "read" | "write" | "isolated-write" | "none"; readonly directory?: string }
+        readonly config: { readonly [x: string]: JsonValue }
+        readonly display: {
+          readonly x: number | "Infinity" | "-Infinity" | "NaN"
+          readonly y: number | "Infinity" | "-Infinity" | "NaN"
+        }
+      }>
+      readonly edges: ReadonlyArray<{
+        readonly id: string
+        readonly sourceNodeID: string
+        readonly sourcePort: string
+        readonly targetNodeID: string
+        readonly targetPort: string
+        readonly condition?: "success" | "failure"
+      }>
+      readonly promptFile?: string
+    }
+    readonly input: JsonValue
+    readonly time: { readonly created: number; readonly updated: number }
+  }>
+}["data"]
+
+export type WorkflowGetRunInput = { readonly runID: { readonly runID: string }["runID"] }
+
+export type WorkflowGetRunOutput = {
+  readonly data: {
+    readonly id: string
+    readonly templateID: string
+    readonly projectID?: string
+    readonly templateVersion: number
+    readonly status: "ready"
+    readonly graph: {
+      readonly nodes: ReadonlyArray<{
+        readonly id: string
+        readonly kind: "task" | "research" | "implement" | "review" | "test" | "approval"
+        readonly title: string
+        readonly objective: string
+        readonly agentProfileID?: string
+        readonly model?: { readonly id: string; readonly providerID: string; readonly variant?: string }
+        readonly promptFile?: string
+        readonly inputs: {
+          readonly [x: string]: {
+            readonly handoffTypes: ReadonlyArray<
+              "task_spec" | "plan" | "research" | "patch" | "review" | "test_result" | "summary" | "generic_document"
+            >
+            readonly required: boolean
+            readonly many: boolean
+            readonly mode: "dependency" | "queue"
+          }
+        }
+        readonly outputs: {
+          readonly [x: string]: {
+            readonly handoffType:
+              | "task_spec"
+              | "plan"
+              | "research"
+              | "patch"
+              | "review"
+              | "test_result"
+              | "summary"
+              | "generic_document"
+            readonly many: boolean
+            readonly mode: "artifact" | "message"
+          }
+        }
+        readonly workspace: { readonly mode: "read" | "write" | "isolated-write" | "none"; readonly directory?: string }
+        readonly config: { readonly [x: string]: JsonValue }
+        readonly display: {
+          readonly x: number | "Infinity" | "-Infinity" | "NaN"
+          readonly y: number | "Infinity" | "-Infinity" | "NaN"
+        }
+      }>
+      readonly edges: ReadonlyArray<{
+        readonly id: string
+        readonly sourceNodeID: string
+        readonly sourcePort: string
+        readonly targetNodeID: string
+        readonly targetPort: string
+        readonly condition?: "success" | "failure"
+      }>
+      readonly promptFile?: string
+    }
+    readonly input: JsonValue
+    readonly time: { readonly created: number; readonly updated: number }
+  }
+}["data"]
+
+export type WorkflowHistoryInput = {
+  readonly runID: { readonly runID: string }["runID"]
+  readonly limit?: { readonly limit?: number | undefined; readonly after?: number | undefined }["limit"]
+  readonly after?: { readonly limit?: number | undefined; readonly after?: number | undefined }["after"]
+}
+
+export type WorkflowHistoryOutput = {
+  readonly data: ReadonlyArray<
+    | {
+        readonly id: string
+        readonly metadata?: { readonly [x: string]: JsonValue }
+        readonly type: "workflow.work-item.status-changed"
+        readonly durable?: { readonly aggregateID: string; readonly seq: number; readonly version: number }
+        readonly location?: { readonly directory: string; readonly workspaceID?: string }
+        readonly data: {
+          readonly timestamp: number
+          readonly runID: string
+          readonly nodeID: string
+          readonly status:
+            | "pending"
+            | "ready"
+            | "running"
+            | "waiting"
+            | "blocked"
+            | "completed"
+            | "failed"
+            | "cancelled"
+          readonly sessionID?: string | null
+        }
+      }
+    | {
+        readonly id: string
+        readonly metadata?: { readonly [x: string]: JsonValue }
+        readonly type: "workflow.handoff.sent"
+        readonly durable?: { readonly aggregateID: string; readonly seq: number; readonly version: number }
+        readonly location?: { readonly directory: string; readonly workspaceID?: string }
+        readonly data: {
+          readonly timestamp: number
+          readonly runID: string
+          readonly handoff: {
+            readonly id: string
+            readonly runID: string
+            readonly sourceNodeID: string
+            readonly sourcePort: string
+            readonly targetNodeID: string
+            readonly targetPort: string
+            readonly mode: "dependency" | "queue"
+            readonly payload: JsonValue
+            readonly sequence: number
+            readonly sealed: boolean
+            readonly time: { readonly created: number }
+          }
+        }
+      }
+    | {
+        readonly id: string
+        readonly metadata?: { readonly [x: string]: JsonValue }
+        readonly type: "workflow.queue.acknowledged"
+        readonly durable?: { readonly aggregateID: string; readonly seq: number; readonly version: number }
+        readonly location?: { readonly directory: string; readonly workspaceID?: string }
+        readonly data: {
+          readonly timestamp: number
+          readonly runID: string
+          readonly nodeID: string
+          readonly port: string
+          readonly sequence: number
+        }
+      }
+  >
+  readonly hasMore: boolean
+}
+
+export type WorkflowListWorkItemsInput = { readonly runID: { readonly runID: string }["runID"] }
+
+export type WorkflowListWorkItemsOutput = {
+  readonly data: ReadonlyArray<{
+    readonly runID: string
+    readonly nodeID: string
+    readonly status: "pending" | "ready" | "running" | "waiting" | "blocked" | "completed" | "failed" | "cancelled"
+    readonly sessionID?: string
+    readonly time: { readonly created: number; readonly updated: number }
+  }>
+}["data"]
+
+export type WorkflowUpdateWorkItemInput = {
+  readonly runID: { readonly runID: string; readonly nodeID: string }["runID"]
+  readonly nodeID: { readonly runID: string; readonly nodeID: string }["nodeID"]
+  readonly status: {
+    readonly status: "pending" | "ready" | "running" | "waiting" | "blocked" | "completed" | "failed" | "cancelled"
+  }["status"]
+}
+
+export type WorkflowUpdateWorkItemOutput = {
+  readonly data: {
+    readonly runID: string
+    readonly nodeID: string
+    readonly status: "pending" | "ready" | "running" | "waiting" | "blocked" | "completed" | "failed" | "cancelled"
+    readonly sessionID?: string
+    readonly time: { readonly created: number; readonly updated: number }
+  }
+}["data"]
+
+export type WorkflowGetCostInput = { readonly runID: { readonly runID: string }["runID"] }
+
+export type WorkflowGetCostOutput = {
+  readonly data: {
+    readonly runID: string
+    readonly estimatedMicrousd?: number | "Infinity" | "-Infinity" | "NaN"
+    readonly unpricedAttempts: number
+    readonly groups: ReadonlyArray<{
+      readonly providerID: string
+      readonly modelID: string
+      readonly usage: {
+        readonly input: number | "Infinity" | "-Infinity" | "NaN"
+        readonly output: number | "Infinity" | "-Infinity" | "NaN"
+        readonly reasoning: number | "Infinity" | "-Infinity" | "NaN"
+        readonly cacheRead: number | "Infinity" | "-Infinity" | "NaN"
+        readonly cacheWrite: number | "Infinity" | "-Infinity" | "NaN"
+      }
+      readonly estimatedMicrousd?: number | "Infinity" | "-Infinity" | "NaN"
+      readonly pricedAttempts: number
+      readonly unpricedAttempts: number
+    }>
+  }
+}["data"]
+
+export type WorkflowSendHandoffInput = {
+  readonly runID: { readonly runID: string }["runID"]
+  readonly sourceNodeID: {
+    readonly sourceNodeID: string
+    readonly sourcePort: string
+    readonly targetNodeID: string
+    readonly targetPort: string
+    readonly payload: JsonValue
+    readonly sealed?: boolean | undefined
+  }["sourceNodeID"]
+  readonly sourcePort: {
+    readonly sourceNodeID: string
+    readonly sourcePort: string
+    readonly targetNodeID: string
+    readonly targetPort: string
+    readonly payload: JsonValue
+    readonly sealed?: boolean | undefined
+  }["sourcePort"]
+  readonly targetNodeID: {
+    readonly sourceNodeID: string
+    readonly sourcePort: string
+    readonly targetNodeID: string
+    readonly targetPort: string
+    readonly payload: JsonValue
+    readonly sealed?: boolean | undefined
+  }["targetNodeID"]
+  readonly targetPort: {
+    readonly sourceNodeID: string
+    readonly sourcePort: string
+    readonly targetNodeID: string
+    readonly targetPort: string
+    readonly payload: JsonValue
+    readonly sealed?: boolean | undefined
+  }["targetPort"]
+  readonly payload: {
+    readonly sourceNodeID: string
+    readonly sourcePort: string
+    readonly targetNodeID: string
+    readonly targetPort: string
+    readonly payload: JsonValue
+    readonly sealed?: boolean | undefined
+  }["payload"]
+  readonly sealed?: {
+    readonly sourceNodeID: string
+    readonly sourcePort: string
+    readonly targetNodeID: string
+    readonly targetPort: string
+    readonly payload: JsonValue
+    readonly sealed?: boolean | undefined
+  }["sealed"]
+}
+
+export type WorkflowSendHandoffOutput = {
+  readonly data: {
+    readonly id: string
+    readonly runID: string
+    readonly sourceNodeID: string
+    readonly sourcePort: string
+    readonly targetNodeID: string
+    readonly targetPort: string
+    readonly mode: "dependency" | "queue"
+    readonly payload: JsonValue
+    readonly sequence: number
+    readonly sealed: boolean
+    readonly time: { readonly created: number }
+  }
+}["data"]
+
+export type WorkflowReadHandoffQueueInput = {
+  readonly runID: { readonly runID: string; readonly nodeID: string; readonly port: string }["runID"]
+  readonly nodeID: { readonly runID: string; readonly nodeID: string; readonly port: string }["nodeID"]
+  readonly port: { readonly runID: string; readonly nodeID: string; readonly port: string }["port"]
+}
+
+export type WorkflowReadHandoffQueueOutput = {
+  readonly data: ReadonlyArray<{
+    readonly id: string
+    readonly runID: string
+    readonly sourceNodeID: string
+    readonly sourcePort: string
+    readonly targetNodeID: string
+    readonly targetPort: string
+    readonly mode: "dependency" | "queue"
+    readonly payload: JsonValue
+    readonly sequence: number
+    readonly sealed: boolean
+    readonly time: { readonly created: number }
+  }>
+}["data"]
+
+export type WorkflowAcknowledgeHandoffQueueInput = {
+  readonly runID: { readonly runID: string; readonly nodeID: string; readonly port: string }["runID"]
+  readonly nodeID: { readonly runID: string; readonly nodeID: string; readonly port: string }["nodeID"]
+  readonly port: { readonly runID: string; readonly nodeID: string; readonly port: string }["port"]
+  readonly sequence: { readonly sequence: number }["sequence"]
+}
+
+export type WorkflowAcknowledgeHandoffQueueOutput = { readonly data: void }["data"]
+
+export type WorkflowDrainInput = { readonly runID: { readonly runID: string }["runID"] }
+
+export type WorkflowDrainOutput = {
+  readonly data: ReadonlyArray<{
+    readonly runID: string
+    readonly nodeID: string
+    readonly status: "pending" | "ready" | "running" | "waiting" | "blocked" | "completed" | "failed" | "cancelled"
+    readonly sessionID?: string
+    readonly time: { readonly created: number; readonly updated: number }
+  }>
+}["data"]
+
+export type WorkflowExecuteInput = { readonly runID: { readonly runID: string }["runID"] }
+
+export type WorkflowExecuteOutput = {
+  readonly data: ReadonlyArray<{
+    readonly runID: string
+    readonly nodeID: string
+    readonly status: "pending" | "ready" | "running" | "waiting" | "blocked" | "completed" | "failed" | "cancelled"
+    readonly sessionID?: string
+    readonly time: { readonly created: number; readonly updated: number }
+  }>
+}["data"]
+
+export type WorkflowAdvanceInput = { readonly runID: { readonly runID: string }["runID"] }
+
+export type WorkflowAdvanceOutput = {
+  readonly data: ReadonlyArray<{
+    readonly runID: string
+    readonly nodeID: string
+    readonly status: "pending" | "ready" | "running" | "waiting" | "blocked" | "completed" | "failed" | "cancelled"
+    readonly sessionID?: string
+    readonly time: { readonly created: number; readonly updated: number }
+  }>
+}["data"]

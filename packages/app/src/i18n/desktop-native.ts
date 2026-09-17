@@ -276,6 +276,9 @@ export const DESKTOP_NATIVE_ENGLISH = {
   "desktop.updater.dialog.ready.title": "Update Ready",
   "desktop.updater.dialog.restart": "Restart",
   "desktop.updater.dialog.later": "Later",
+  "desktop.updater.dialog.merge.title": "Upstream update available",
+  "desktop.updater.dialog.merge.message": "OpenCode {{version}} is available. Merge it into this fork.",
+  "desktop.updater.dialog.merge.open": "Open GitHub",
 
   "desktop.recovery.action.relaunch": "Relaunch",
   "desktop.recovery.action.exportLogs": "Export Logs",

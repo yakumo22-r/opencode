@@ -19,6 +19,9 @@ export const dict = {
     "Version {{version}} of OpenCode has been downloaded, would you like to install it and relaunch?",
   "desktop.updater.installFailed.title": "Update Failed",
   "desktop.updater.installFailed.message": "Failed to install update",
+  "desktop.updater.dialog.merge.title": "Upstream update available",
+  "desktop.updater.dialog.merge.message": "OpenCode {{version}} is available. Merge it into this fork.",
+  "desktop.updater.dialog.merge.open": "Open GitHub",
 
   "desktop.cli.installed.title": "CLI Installed",
   "desktop.cli.installed.message": "CLI installed to {{path}}\n\nRestart your terminal to use the 'opencode' command.",

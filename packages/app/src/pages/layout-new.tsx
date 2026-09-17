@@ -24,7 +24,7 @@ export default function NewLayout(props: ParentProps) {
 
   return (
     <div
-      class="relative bg-v2-background-bg-deep flex-1 min-h-0 min-w-0 flex flex-col select-none [&_input]:select-text [&_textarea]:select-text [&_[contenteditable]]:select-text"
+      class="fixed inset-0 z-0 flex h-dvh min-h-0 min-w-0 flex-col overflow-hidden bg-v2-background-bg-deep select-none [&_input]:select-text [&_textarea]:select-text [&_[contenteditable]]:select-text"
       style={{
         "padding-top": "env(safe-area-inset-top, 0px)",
         "padding-bottom": "env(safe-area-inset-bottom, 0px)",
@@ -38,7 +38,7 @@ export default function NewLayout(props: ParentProps) {
             : undefined
         }
       />
-      <main class="flex-1 min-h-0 min-w-0 overflow-x-hidden flex flex-col items-start contain-strict">
+      <main class="flex min-h-0 min-w-0 flex-1 basis-0 flex-col overflow-hidden">
         <Suspense>{props.children}</Suspense>
       </main>
       {import.meta.env.DEV && state.debugTools && <DebugBar inline />}

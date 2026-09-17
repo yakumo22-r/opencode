@@ -23,6 +23,7 @@ export function createUpdaterController(input: {
   persistence: UpdaterPersistence
   stop: () => Promise<void>
   log?: (message: string, data?: object) => void
+  skipDownload?: boolean
 }) {
   let state: UpdaterState = input.enabled ? { status: "idle" } : { status: "disabled" }
   let pending: Promise<UpdaterState> | undefined
@@ -49,8 +50,10 @@ export function createUpdaterController(input: {
         return transition({ status: "up-to-date" })
       }
 
-      transition({ status: "downloading", version })
-      await input.backend.downloadUpdate()
+      if (!input.skipDownload) {
+        transition({ status: "downloading", version })
+        await input.backend.downloadUpdate()
+      }
       await input.persistence.set({ version })
       return transition({ status: "ready", version })
     })()

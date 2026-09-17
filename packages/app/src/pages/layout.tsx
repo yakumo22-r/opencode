@@ -945,6 +945,12 @@ export default function LegacyLayout(props: ParentProps) {
         onSelect: () => openSettings(),
       },
       {
+        id: "workflow.open",
+        title: language.t("workflow.home.eyebrow"),
+        category: language.t("command.category.view"),
+        onSelect: () => navigate("/workflow"),
+      },
+      {
         id: "session.previous",
         title: language.t("command.session.previous"),
         category: language.t("command.category.session"),

@@ -112,6 +112,40 @@ import type {
   ProjectCopiesRemoveOutput,
   ProjectCopiesRefreshInput,
   ProjectCopiesRefreshOutput,
+  WorkflowListTemplatesInput,
+  WorkflowListTemplatesOutput,
+  WorkflowCreateTemplateInput,
+  WorkflowCreateTemplateOutput,
+  WorkflowUpdateTemplateInput,
+  WorkflowUpdateTemplateOutput,
+  WorkflowGetTemplateInput,
+  WorkflowGetTemplateOutput,
+  WorkflowCreateRunInput,
+  WorkflowCreateRunOutput,
+  WorkflowListRunsInput,
+  WorkflowListRunsOutput,
+  WorkflowGetRunInput,
+  WorkflowGetRunOutput,
+  WorkflowHistoryInput,
+  WorkflowHistoryOutput,
+  WorkflowListWorkItemsInput,
+  WorkflowListWorkItemsOutput,
+  WorkflowUpdateWorkItemInput,
+  WorkflowUpdateWorkItemOutput,
+  WorkflowGetCostInput,
+  WorkflowGetCostOutput,
+  WorkflowSendHandoffInput,
+  WorkflowSendHandoffOutput,
+  WorkflowReadHandoffQueueInput,
+  WorkflowReadHandoffQueueOutput,
+  WorkflowAcknowledgeHandoffQueueInput,
+  WorkflowAcknowledgeHandoffQueueOutput,
+  WorkflowDrainInput,
+  WorkflowDrainOutput,
+  WorkflowExecuteInput,
+  WorkflowExecuteOutput,
+  WorkflowAdvanceInput,
+  WorkflowAdvanceOutput,
 } from "./types"
 import { ClientError } from "./client-error"
 
@@ -986,6 +1020,216 @@ export function make(options: ClientOptions) {
           },
           requestOptions,
         ),
+    },
+    workflow: {
+      listTemplates: (input?: WorkflowListTemplatesInput, requestOptions?: RequestOptions) =>
+        request<{ readonly data: WorkflowListTemplatesOutput }>(
+          {
+            method: "GET",
+            path: `/api/workflow/template`,
+            query: { projectID: input?.["projectID"] },
+            successStatus: 200,
+            declaredStatuses: [401, 400],
+            empty: false,
+          },
+          requestOptions,
+        ).then((value) => value.data),
+      createTemplate: (input: WorkflowCreateTemplateInput, requestOptions?: RequestOptions) =>
+        request<{ readonly data: WorkflowCreateTemplateOutput }>(
+          {
+            method: "POST",
+            path: `/api/workflow/template`,
+            body: {
+              projectID: input["projectID"],
+              title: input["title"],
+              description: input["description"],
+              graph: input["graph"],
+            },
+            successStatus: 200,
+            declaredStatuses: [400, 401],
+            empty: false,
+          },
+          requestOptions,
+        ).then((value) => value.data),
+      updateTemplate: (input: WorkflowUpdateTemplateInput, requestOptions?: RequestOptions) =>
+        request<{ readonly data: WorkflowUpdateTemplateOutput }>(
+          {
+            method: "PUT",
+            path: `/api/workflow/template/${encodeURIComponent(input.templateID)}`,
+            body: { title: input["title"], description: input["description"], graph: input["graph"] },
+            successStatus: 200,
+            declaredStatuses: [400, 404, 401],
+            empty: false,
+          },
+          requestOptions,
+        ).then((value) => value.data),
+      getTemplate: (input: WorkflowGetTemplateInput, requestOptions?: RequestOptions) =>
+        request<{ readonly data: WorkflowGetTemplateOutput }>(
+          {
+            method: "GET",
+            path: `/api/workflow/template/${encodeURIComponent(input.templateID)}`,
+            successStatus: 200,
+            declaredStatuses: [404, 401, 400],
+            empty: false,
+          },
+          requestOptions,
+        ).then((value) => value.data),
+      createRun: (input: WorkflowCreateRunInput, requestOptions?: RequestOptions) =>
+        request<{ readonly data: WorkflowCreateRunOutput }>(
+          {
+            method: "POST",
+            path: `/api/workflow/run`,
+            body: { templateID: input["templateID"], input: input["input"] },
+            successStatus: 200,
+            declaredStatuses: [404, 401, 400],
+            empty: false,
+          },
+          requestOptions,
+        ).then((value) => value.data),
+      listRuns: (input?: WorkflowListRunsInput, requestOptions?: RequestOptions) =>
+        request<{ readonly data: WorkflowListRunsOutput }>(
+          {
+            method: "GET",
+            path: `/api/workflow/run`,
+            query: { projectID: input?.["projectID"] },
+            successStatus: 200,
+            declaredStatuses: [401, 400],
+            empty: false,
+          },
+          requestOptions,
+        ).then((value) => value.data),
+      getRun: (input: WorkflowGetRunInput, requestOptions?: RequestOptions) =>
+        request<{ readonly data: WorkflowGetRunOutput }>(
+          {
+            method: "GET",
+            path: `/api/workflow/run/${encodeURIComponent(input.runID)}`,
+            successStatus: 200,
+            declaredStatuses: [404, 401, 400],
+            empty: false,
+          },
+          requestOptions,
+        ).then((value) => value.data),
+      history: (input: WorkflowHistoryInput, requestOptions?: RequestOptions) =>
+        request<WorkflowHistoryOutput>(
+          {
+            method: "GET",
+            path: `/api/workflow/run/${encodeURIComponent(input.runID)}/history`,
+            query: { limit: input["limit"], after: input["after"] },
+            successStatus: 200,
+            declaredStatuses: [404, 401, 400],
+            empty: false,
+          },
+          requestOptions,
+        ),
+      listWorkItems: (input: WorkflowListWorkItemsInput, requestOptions?: RequestOptions) =>
+        request<{ readonly data: WorkflowListWorkItemsOutput }>(
+          {
+            method: "GET",
+            path: `/api/workflow/run/${encodeURIComponent(input.runID)}/work-item`,
+            successStatus: 200,
+            declaredStatuses: [404, 401, 400],
+            empty: false,
+          },
+          requestOptions,
+        ).then((value) => value.data),
+      updateWorkItem: (input: WorkflowUpdateWorkItemInput, requestOptions?: RequestOptions) =>
+        request<{ readonly data: WorkflowUpdateWorkItemOutput }>(
+          {
+            method: "POST",
+            path: `/api/workflow/run/${encodeURIComponent(input.runID)}/work-item/${encodeURIComponent(input.nodeID)}`,
+            body: { status: input["status"] },
+            successStatus: 200,
+            declaredStatuses: [400, 404, 401],
+            empty: false,
+          },
+          requestOptions,
+        ).then((value) => value.data),
+      getCost: (input: WorkflowGetCostInput, requestOptions?: RequestOptions) =>
+        request<{ readonly data: WorkflowGetCostOutput }>(
+          {
+            method: "GET",
+            path: `/api/workflow/run/${encodeURIComponent(input.runID)}/cost`,
+            successStatus: 200,
+            declaredStatuses: [404, 401, 400],
+            empty: false,
+          },
+          requestOptions,
+        ).then((value) => value.data),
+      sendHandoff: (input: WorkflowSendHandoffInput, requestOptions?: RequestOptions) =>
+        request<{ readonly data: WorkflowSendHandoffOutput }>(
+          {
+            method: "POST",
+            path: `/api/workflow/run/${encodeURIComponent(input.runID)}/handoff`,
+            body: {
+              sourceNodeID: input["sourceNodeID"],
+              sourcePort: input["sourcePort"],
+              targetNodeID: input["targetNodeID"],
+              targetPort: input["targetPort"],
+              payload: input["payload"],
+              sealed: input["sealed"],
+            },
+            successStatus: 200,
+            declaredStatuses: [400, 404, 401],
+            empty: false,
+          },
+          requestOptions,
+        ).then((value) => value.data),
+      readHandoffQueue: (input: WorkflowReadHandoffQueueInput, requestOptions?: RequestOptions) =>
+        request<{ readonly data: WorkflowReadHandoffQueueOutput }>(
+          {
+            method: "GET",
+            path: `/api/workflow/run/${encodeURIComponent(input.runID)}/queue/${encodeURIComponent(input.nodeID)}/${encodeURIComponent(input.port)}`,
+            successStatus: 200,
+            declaredStatuses: [400, 404, 401],
+            empty: false,
+          },
+          requestOptions,
+        ).then((value) => value.data),
+      acknowledgeHandoffQueue: (input: WorkflowAcknowledgeHandoffQueueInput, requestOptions?: RequestOptions) =>
+        request<{ readonly data: WorkflowAcknowledgeHandoffQueueOutput }>(
+          {
+            method: "POST",
+            path: `/api/workflow/run/${encodeURIComponent(input.runID)}/queue/${encodeURIComponent(input.nodeID)}/${encodeURIComponent(input.port)}/acknowledge`,
+            body: { sequence: input["sequence"] },
+            successStatus: 200,
+            declaredStatuses: [400, 404, 401],
+            empty: false,
+          },
+          requestOptions,
+        ).then((value) => value.data),
+      drain: (input: WorkflowDrainInput, requestOptions?: RequestOptions) =>
+        request<{ readonly data: WorkflowDrainOutput }>(
+          {
+            method: "POST",
+            path: `/api/workflow/run/${encodeURIComponent(input.runID)}/drain`,
+            successStatus: 200,
+            declaredStatuses: [400, 404, 401],
+            empty: false,
+          },
+          requestOptions,
+        ).then((value) => value.data),
+      execute: (input: WorkflowExecuteInput, requestOptions?: RequestOptions) =>
+        request<{ readonly data: WorkflowExecuteOutput }>(
+          {
+            method: "POST",
+            path: `/api/workflow/run/${encodeURIComponent(input.runID)}/execute`,
+            successStatus: 200,
+            declaredStatuses: [400, 404, 401],
+            empty: false,
+          },
+          requestOptions,
+        ).then((value) => value.data),
+      advance: (input: WorkflowAdvanceInput, requestOptions?: RequestOptions) =>
+        request<{ readonly data: WorkflowAdvanceOutput }>(
+          {
+            method: "POST",
+            path: `/api/workflow/run/${encodeURIComponent(input.runID)}/advance`,
+            successStatus: 200,
+            declaredStatuses: [400, 404, 401],
+            empty: false,
+          },
+          requestOptions,
+        ).then((value) => value.data),
     },
   }
 }

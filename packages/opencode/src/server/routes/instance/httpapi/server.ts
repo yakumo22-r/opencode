@@ -66,6 +66,9 @@ import { SessionProjector } from "@opencode-ai/core/session/projector"
 import { SessionV2 } from "@opencode-ai/core/session"
 import { SessionExecution } from "@opencode-ai/core/session/execution"
 import * as SessionExecutionLocal from "@opencode-ai/core/session/execution/local"
+import { Workflow } from "@opencode-ai/core/workflow"
+import { WorkflowExecution } from "@opencode-ai/core/workflow/execution"
+import { WorkflowTools } from "@opencode-ai/core/workflow/tools"
 import { lazy } from "@/util/lazy"
 import { CorsConfig, isAllowedCorsOrigin, type CorsOptions } from "@opencode-ai/server/cors"
 import { serveUIEffect } from "@/server/shared/ui"
@@ -296,7 +299,7 @@ export function createRoutes(
     Layer.provide(locationLayer),
     Layer.provide(PtyEnvironment.layer),
     Layer.provide(
-      AppNodeBuilderV1.build(SessionV2.node, [
+      AppNodeBuilderV1.build(LayerNode.group([SessionV2.node, Workflow.node, WorkflowExecution.node, WorkflowTools.node]), [
         [LocationServiceMap.node, locationServiceMapV2],
         [SessionExecution.node, SessionExecutionLocal.node],
       ]),

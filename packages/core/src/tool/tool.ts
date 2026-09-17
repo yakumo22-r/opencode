@@ -43,6 +43,7 @@ type Config<
   Structured extends SchemaType<any> = Output,
 > = {
   readonly description: string
+  readonly scope?: "workflow"
   readonly input: Input
   readonly output: Output
   readonly structured?: Structured
@@ -62,6 +63,7 @@ type Config<
 
 type Runtime = {
   readonly permission?: string
+  readonly scope?: "workflow"
   readonly definition: (name: string) => ToolDefinition
   readonly settle: (call: ToolCall, context: Context) => Effect.Effect<ToolOutput, ToolFailure>
 }
@@ -76,6 +78,7 @@ export function make<
   const tool = Object.freeze({}) as Definition<Input, Structured>
   const definitions = new Map<string, ToolDefinition>()
   runtimes.set(tool, {
+    scope: config.scope,
     definition: (name) => {
       const cached = definitions.get(name)
       if (cached) return cached
@@ -135,6 +138,8 @@ export const validateName = (name: string) =>
   /^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(name)
     ? Effect.void
     : Effect.fail(new RegistrationError({ name, message: `Invalid tool name: ${name}` }))
+
+export const scope = (tool: AnyTool) => runtimes.get(tool)?.scope
 
 export const withPermission = <Input extends SchemaType<any>, Output extends SchemaType<any>>(
   tool: Definition<Input, Output>,
