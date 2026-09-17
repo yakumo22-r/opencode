@@ -145,6 +145,7 @@ export const dict = {
   "command.session.previous.unseen": "上一个未读会话",
   "command.session.next.unseen": "下一个未读会话",
   "command.session.archive": "归档会话",
+  "command.session.index": "打开会话索引",
 
   "command.palette": "命令面板",
 
@@ -157,6 +158,7 @@ export const dict = {
   "command.language.set": "使用语言：{{language}}",
 
   "command.session.new": "新建会话",
+  "session.index.title": "已打开的会话",
   "workflow.run.eyebrow": "工作流运行",
   "workflow.run.description": "实时查看工作流状态、交接信息和模型成本估算。",
   "workflow.run.loading": "正在加载工作流运行...",
@@ -291,6 +293,16 @@ export const dict = {
   "workflow.kind.review": "审查",
   "workflow.kind.test": "测试",
   "workflow.kind.approval": "审批",
+  "session.index.description": "在此窗口中切换或关闭会话。",
+  "session.index.projectFilter": "按项目筛选会话",
+  "session.index.allProjects": "全部项目",
+  "session.index.unknownProject": "未知项目",
+  "session.index.empty": "没有已打开的会话",
+  "session.index.status.working": "运行中",
+  "session.index.status.permission": "等待权限",
+  "session.index.status.error": "错误",
+  "session.index.status.unread": "未读",
+  "session.index.status.open": "已打开",
 
   "command.file.open": "打开文件",
 

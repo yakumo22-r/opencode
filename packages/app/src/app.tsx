@@ -68,6 +68,7 @@ import { createSessionLineage } from "@/pages/session/session-lineage"
 import { SessionPage, SessionRouteErrorBoundary, TargetSessionRouteContent } from "@/pages/session"
 import { NewHome } from "@/pages/home"
 import { LegacyHome } from "@/pages/home/legacy-home"
+import { SessionIndexPage } from "@/pages/session-index"
 import { WorkflowRunPage } from "@/pages/workflow-run"
 import { WorkflowHomePage } from "@/pages/workflow-home"
 import { WorkflowTemplatePage } from "@/pages/workflow-template"
@@ -329,8 +330,24 @@ function DesktopCommands() {
   const command = useCommand()
   const language = useLanguage()
   const platform = usePlatform()
+  const navigate = useNavigate()
+  const location = useLocation()
+
   command.register("desktop", () => {
     const commands: CommandOption[] = []
+    commands.push({
+      id: "session.index",
+      title: language.t("command.session.index"),
+      category: language.t("command.category.session"),
+      keybind: "ctrl+shift+space",
+      onSelect: () => {
+        if (location.pathname === "/session-index") {
+          navigate(-1)
+          return
+        }
+        navigate("/session-index")
+      },
+    })
     if (platform.platform === "desktop" && platform.exportDebugLogs) {
       commands.push({
         id: "logs.export",
@@ -619,6 +636,7 @@ function Routes(props: { serverScoped?: JSX.Element }) {
 
   return (
     <>
+      <Route path="/session-index" component={SessionIndexPage} />
       <Route path="/workflow/run/:runID" component={WorkflowRunPage} />
       <Route path="/workflow/template/:templateID" component={WorkflowTemplatePage} />
       <Route path="/workflow" component={WorkflowHomePage} />

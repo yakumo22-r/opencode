@@ -140,6 +140,7 @@ export const dict = {
   "command.session.previous.unseen": "上一個未讀工作階段",
   "command.session.next.unseen": "下一個未讀工作階段",
   "command.session.archive": "封存工作階段",
+  "command.session.index": "開啟工作階段索引",
 
   "command.palette": "命令面板",
 
@@ -152,6 +153,7 @@ export const dict = {
   "command.language.set": "使用語言: {{language}}",
 
   "command.session.new": "新增工作階段",
+  "session.index.title": "已開啟的工作階段",
   "workflow.run.eyebrow": "工作流程執行",
   "workflow.run.description": "即時檢視工作流程狀態、交接資訊與模型成本估算。",
   "workflow.run.loading": "正在載入工作流程執行...",
@@ -286,6 +288,16 @@ export const dict = {
   "workflow.template.agent": "Agent",
   "workflow.template.model": "模型",
   "workflow.template.modelPlaceholder": "provider/model",
+  "session.index.description": "在此視窗中切換或關閉工作階段。",
+  "session.index.projectFilter": "依專案篩選工作階段",
+  "session.index.allProjects": "全部專案",
+  "session.index.unknownProject": "未知專案",
+  "session.index.empty": "沒有已開啟的工作階段",
+  "session.index.status.working": "執行中",
+  "session.index.status.permission": "需要權限",
+  "session.index.status.error": "錯誤",
+  "session.index.status.unread": "未讀",
+  "session.index.status.open": "已開啟",
   "command.file.open": "開啟檔案",
   "command.tab.close": "關閉分頁",
   "command.tab.reopenClosed": "重新開啟已關閉的分頁",
