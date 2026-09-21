@@ -681,6 +681,19 @@ export function persisted<T>(
     return api
   })()
 
+  if (config.key === "tabs" || config.key === "tabs.groups" || config.key === "tabs.recent" || config.key === "tabs.info" || config.key === "tabs.closed") {
+    const inner = storage.setItem.bind(storage)
+    storage.setItem = (key: string, value: string) => {
+      const start = Date.now()
+      console.warn("[persist-debug] start", { name: config.key, bytes: value.length })
+      const result = inner(key, value)
+      const done = () => console.warn("[persist-debug] done", { name: config.key, ms: Date.now() - start, bytes: value.length })
+      if (result && typeof result.then === "function") return result.finally(done)
+      done()
+      return result
+    }
+  }
+
   const [state, setState, init] = makePersisted(store, { name: config.key, storage })
 
   const isAsync = init instanceof Promise

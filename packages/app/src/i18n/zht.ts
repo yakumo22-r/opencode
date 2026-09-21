@@ -141,6 +141,9 @@ export const dict = {
   "command.session.next.unseen": "下一個未讀工作階段",
   "command.session.archive": "封存工作階段",
   "command.session.index": "開啟工作階段索引",
+  "command.tab.group.previous": "上一個分頁群組",
+  "command.tab.group.next": "下一個分頁群組",
+  "command.tab.group.new": "新增分頁群組",
 
   "command.palette": "命令面板",
 
@@ -293,6 +296,10 @@ export const dict = {
   "session.index.allProjects": "全部專案",
   "session.index.unknownProject": "未知專案",
   "session.index.empty": "沒有已開啟的工作階段",
+  "session.index.groups": "工作階段群組",
+  "session.index.newGroup": "群組名稱",
+  "session.index.createGroup": "新增群組",
+  "session.index.moveToGroup": "將工作階段移至群組",
   "session.index.status.working": "執行中",
   "session.index.status.permission": "需要權限",
   "session.index.status.error": "錯誤",

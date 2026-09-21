@@ -332,9 +332,42 @@ function DesktopCommands() {
   const platform = usePlatform()
   const navigate = useNavigate()
   const location = useLocation()
+  const tabs = useTabs()
 
   command.register("desktop", () => {
     const commands: CommandOption[] = []
+    const cycleGroup = (offset: -1 | 1) => {
+      const groups = tabs.groups.groups
+      if (groups.length < 2) return
+      const index = groups.findIndex((group) => group.id === tabs.groups.active)
+      tabs.selectGroup(groups[(index + offset + groups.length) % groups.length].id)
+    }
+    commands.push(
+      {
+        id: "tab.group.previous",
+        title: language.t("command.tab.group.previous"),
+        category: language.t("command.category.session"),
+        keybind: "ctrl+alt+ArrowLeft",
+        hidden: true,
+        onSelect: () => cycleGroup(-1),
+      },
+      {
+        id: "tab.group.next",
+        title: language.t("command.tab.group.next"),
+        category: language.t("command.category.session"),
+        keybind: "ctrl+alt+ArrowRight",
+        hidden: true,
+        onSelect: () => cycleGroup(1),
+      },
+      {
+        id: "tab.group.new",
+        title: language.t("command.tab.group.new"),
+        category: language.t("command.category.session"),
+        keybind: "ctrl+alt+n",
+        hidden: true,
+        onSelect: () => navigate("/session-index"),
+      },
+    )
     commands.push({
       id: "session.index",
       title: language.t("command.session.index"),

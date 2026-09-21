@@ -396,7 +396,7 @@ export function Titlebar(props: { update?: TitlebarUpdate; debugTools?: { visibl
                 </TooltipV2>
 
                 <TitlebarTabStrip
-                  tabs={tabsStore}
+                  tabs={tabs.visible()}
                   currentTab={currentTab}
                   forceTruncate={tabsAreOverflowing()}
                   onOverflowChange={setTabsAreOverflowing}

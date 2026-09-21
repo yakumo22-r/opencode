@@ -39,6 +39,9 @@ export const dict = {
   "command.session.next.unseen": "Next unread session",
   "command.session.archive": "Archive session",
   "command.session.index": "Open session index",
+  "command.tab.group.previous": "Previous tab group",
+  "command.tab.group.next": "Next tab group",
+  "command.tab.group.new": "New tab group",
 
   "command.palette": "Command palette",
 
@@ -57,6 +60,10 @@ export const dict = {
   "session.index.allProjects": "All projects",
   "session.index.unknownProject": "Unknown project",
   "session.index.empty": "No open sessions",
+  "session.index.groups": "Session groups",
+  "session.index.newGroup": "Group name",
+  "session.index.createGroup": "New group",
+  "session.index.moveToGroup": "Move session to group",
   "session.index.status.working": "Working",
   "session.index.status.permission": "Needs permission",
   "session.index.status.error": "Error",

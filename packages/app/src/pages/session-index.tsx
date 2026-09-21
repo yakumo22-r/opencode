@@ -3,12 +3,10 @@ import { ButtonV2 } from "@opencode-ai/ui/v2/button-v2"
 import { Icon as IconV2 } from "@opencode-ai/ui/v2/icon"
 import { IconButtonV2 } from "@opencode-ai/ui/v2/icon-button-v2"
 import { useNavigate } from "@solidjs/router"
-import { createEffect, createMemo, createSignal, For, Show } from "solid-js"
-import { createStore } from "solid-js/store"
+import { createMemo, createSignal, For, Show } from "solid-js"
 import { useLanguage } from "@/context/language"
 import { type LocalProject, useLayout } from "@/context/layout"
 import { useNotification } from "@/context/notification"
-import { usePermission } from "@/context/permission"
 import { useServer } from "@/context/server"
 import { useServerSync } from "@/context/server-sync"
 import { tabKey, useTabs } from "@/context/tabs"
@@ -17,7 +15,7 @@ import { pathKey } from "@/utils/path-key"
 import { sessionTitle } from "@/utils/session-title"
 
 type SessionIndexRecord = {
-  index: number
+  key: string
   sessionID: string
   directory: string
   title: string
@@ -32,38 +30,25 @@ export function SessionIndexPage() {
   const server = useServer()
   const serverSync = useServerSync()
   const notification = useNotification()
-  const permission = usePermission()
   const language = useLanguage()
   const navigate = useNavigate()
   const [selectedProject, setSelectedProject] = createSignal<string>()
-  const [resolved, setResolved] = createStore<Record<string, { title: string; directory: string }>>({})
-  const resolving = new Set<string>()
+  const [newGroupName, setNewGroupName] = createSignal("")
 
-  createEffect(() => {
-    for (const tab of tabs.store ?? []) {
-      if (tab.type !== "session" || tab.server !== server.key) continue
-      const key = tabKey(tab)
-      if (resolved[key] || tabs.info[key]?.title || resolving.has(key)) continue
-      resolving.add(key)
-      void serverSync()
-        .session.resolve(tab.sessionId)
-        .then((session) => {
-          if (!session) return
-          setResolved(key, { title: session.title, directory: session.directory })
-          tabs.rememberSessionInfo(tab, session)
-        })
-        .catch(() => {})
-        .finally(() => resolving.delete(key))
+  const pendingPermissions = createMemo(() => {
+    const ids = new Set<string>()
+    for (const request of Object.values(serverSync().session.data.permission)) {
+      if (request.sessionID) ids.add(request.sessionID)
     }
+    return ids
   })
 
   const records = createMemo<SessionIndexRecord[]>(() =>
-    (tabs.store ?? []).flatMap((tab, index) => {
+    (tabs.visible() ?? []).flatMap((tab) => {
       if (tab.type !== "session") return []
       const info = tabs.info[tabKey(tab)]
-      const loaded = resolved[tabKey(tab)]
       const session = tab.server === server.key ? serverSync().session.peek(tab.sessionId) : undefined
-      const sessionDirectory = session?.directory ?? loaded?.directory ?? info?.directory
+      const sessionDirectory = session?.directory ?? info?.directory
       const project = layout.projects.list().find((item) => {
         if (!sessionDirectory) return false
         const directory = pathKey(sessionDirectory)
@@ -73,22 +58,16 @@ export function SessionIndexPage() {
       const status = (() => {
         if (tab.server !== server.key) return "open" as const
         if (serverSync().session.data.session_working(tab.sessionId)) return "working" as const
-        if (
-          Object.values(serverSync().session.data.permission).some(
-            (request) => request.sessionID === tab.sessionId && !permission.autoResponds(request, directory),
-          )
-        ) {
-          return "permission" as const
-        }
+        if (pendingPermissions().has(tab.sessionId)) return "permission" as const
         if (notification.session.unseenHasError(tab.sessionId)) return "error" as const
         if (notification.session.unseenCount(tab.sessionId) > 0) return "unread" as const
         return "open" as const
       })()
       return {
-        index,
+        key: tabKey(tab),
         sessionID: tab.sessionId,
         directory,
-        title: sessionTitle(session?.title ?? loaded?.title ?? info?.title) ?? tab.sessionId,
+        title: sessionTitle(session?.title ?? info?.title) ?? tab.sessionId,
         project,
         projectName: project?.name || (sessionDirectory ? getFilename(project?.worktree ?? directory) : language.t("session.index.unknownProject")),
         status,
@@ -103,6 +82,7 @@ export function SessionIndexPage() {
   const filtered = createMemo(() =>
     (records() ?? []).filter((record) => !selectedProject() || record.directory === selectedProject()),
   )
+  const activeGroup = createMemo(() => tabs.groups.groups.find((group) => group.id === tabs.groups.active) ?? tabs.groups.groups[0])
 
   return (
     <main class="fixed inset-0 z-50 flex min-h-0 flex-col bg-v2-background-bg-base px-5 py-6 lg:px-12 lg:py-10">
@@ -117,7 +97,7 @@ export function SessionIndexPage() {
           </ButtonV2>
         </header>
 
-        <nav class="flex flex-wrap gap-2" aria-label={language.t("session.index.projectFilter")}>
+          <nav class="flex flex-wrap gap-2" aria-label={language.t("session.index.projectFilter")}>
           <ButtonV2
             variant={selectedProject() ? "ghost-muted" : "neutral"}
             size="small"
@@ -136,7 +116,42 @@ export function SessionIndexPage() {
               </ButtonV2>
             )}
           </For>
-        </nav>
+          </nav>
+
+          <section class="flex flex-wrap items-center gap-2 border-y border-v2-border-border-weak py-3" aria-label={language.t("session.index.groups")}>
+            <For each={tabs.groups.groups}>
+              {(group) => (
+                <ButtonV2
+                  variant={activeGroup()?.id === group.id ? "neutral" : "ghost-muted"}
+                  size="small"
+                  onClick={() => tabs.selectGroup(group.id)}
+                >
+                  {group.name}
+                </ButtonV2>
+              )}
+            </For>
+            <form
+              class="flex items-center gap-2"
+              onSubmit={(event) => {
+                event.preventDefault()
+                const name = newGroupName().trim()
+                if (!name) return
+                tabs.createGroup(name)
+                setNewGroupName("")
+              }}
+            >
+              <input
+                class="h-8 w-36 rounded border border-v2-border-border-weak bg-v2-background-bg-layer-02 px-2 text-sm text-v2-text-text-base outline-none focus:border-v2-border-border-accent"
+                value={newGroupName()}
+                onInput={(event) => setNewGroupName(event.currentTarget.value)}
+                placeholder={language.t("session.index.newGroup")}
+                aria-label={language.t("session.index.newGroup")}
+              />
+              <ButtonV2 type="submit" variant="ghost-muted" size="small">
+                {language.t("session.index.createGroup")}
+              </ButtonV2>
+            </form>
+          </section>
 
         <Show
           when={filtered().length > 0}
@@ -149,7 +164,10 @@ export function SessionIndexPage() {
                   <button
                     type="button"
                     class="flex min-w-0 flex-1 flex-col text-left outline-none focus-visible:ring-2 focus-visible:ring-v2-icon-icon-accent"
-                    onClick={() => tabs.select(tabs.store[record.index]!)}
+                     onClick={() => {
+                       const tab = tabs.store.find((item) => tabKey(item) === record.key)
+                       if (tab) tabs.select(tab)
+                     }}
                   >
                     <div class="flex items-center gap-2 text-sm text-v2-text-text-muted">
                       <Show
@@ -162,15 +180,26 @@ export function SessionIndexPage() {
                     </div>
                     <h2 class="mt-4 line-clamp-2 text-base font-[560] text-v2-text-text-base">{record.title}</h2>
                   </button>
-                  <div class="mt-4 flex items-center justify-between gap-3">
-                    <SessionStatus status={record.status} />
-                    <IconButtonV2
+                    <div class="mt-4 flex items-center justify-between gap-3">
+                      <SessionStatus status={record.status} />
+                      <select
+                        class="max-w-32 truncate rounded border border-v2-border-border-weak bg-v2-background-bg-layer-02 px-1.5 py-1 text-xs text-v2-text-text-muted"
+                        value={activeGroup()?.id}
+                        aria-label={language.t("session.index.moveToGroup")}
+                         onChange={(event) => tabs.moveToGroup(record.key, event.currentTarget.value)}
+                      >
+                        <For each={tabs.groups.groups}>{(group) => <option value={group.id}>{group.name}</option>}</For>
+                      </select>
+                      <IconButtonV2
                       icon={<IconV2 name="close" size="small" />}
                       variant="ghost-muted"
                       size="small"
                       aria-label={language.t("common.closeTab")}
-                      onClick={() => tabs.closeTab(record.index)}
-                    />
+                       onClick={() => {
+                         const index = tabs.store.findIndex((item) => tabKey(item) === record.key)
+                         if (index !== -1) tabs.closeTab(index)
+                       }}
+                      />
                   </div>
                 </article>
               )}

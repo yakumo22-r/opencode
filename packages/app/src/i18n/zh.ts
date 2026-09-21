@@ -146,6 +146,9 @@ export const dict = {
   "command.session.next.unseen": "下一个未读会话",
   "command.session.archive": "归档会话",
   "command.session.index": "打开会话索引",
+  "command.tab.group.previous": "上一个标签分组",
+  "command.tab.group.next": "下一个标签分组",
+  "command.tab.group.new": "新建标签分组",
 
   "command.palette": "命令面板",
 
@@ -298,6 +301,10 @@ export const dict = {
   "session.index.allProjects": "全部项目",
   "session.index.unknownProject": "未知项目",
   "session.index.empty": "没有已打开的会话",
+  "session.index.groups": "会话分组",
+  "session.index.newGroup": "分组名称",
+  "session.index.createGroup": "新建分组",
+  "session.index.moveToGroup": "移动会话到分组",
   "session.index.status.working": "运行中",
   "session.index.status.permission": "等待权限",
   "session.index.status.error": "错误",
