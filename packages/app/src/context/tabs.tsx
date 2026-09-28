@@ -58,7 +58,7 @@ export const tabHref = (tab: Tab) =>
 export const tabKey = (tab: Tab) => (tab.type === "draft" ? `draft:${tab.draftID}` : `${tab.server}\n${tabHref(tab)}`)
 
 function debugTabs(event: string, extra?: Record<string, unknown>) {
-  console.warn("[tabs-debug]", { t: Date.now(), event, ...extra })
+  console.warn(`[tabs-debug] ${JSON.stringify({ t: Date.now(), event, ...extra })}`)
 }
 
 export function sessionHasOpenTab(tabs: Tab[], server: ServerConnection.Key, session: Session) {
@@ -96,6 +96,7 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
       createStore<TabGroups>({ active: "default", groups: [{ id: "default", name: "Default", keys: [] }] }),
     )
     const [closed, setClosed, , closedReady] = persisted(Persist.window("tabs.closed"), createStore<ClosedTab[]>([]))
+    const [hidden, setHidden, , hiddenReady] = persisted(Persist.window("tabs.hidden"), createStore<string[]>([]))
 
     const params = useParams()
     const navigate = useNavigate()
@@ -146,6 +147,17 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
 
     onCleanup(memory.dispose)
 
+    const dropHidden = (keys: string[]) => {
+      if (!keys.length) return
+      const remove = new Set(keys)
+      setHidden((list) => list.filter((key) => !remove.has(key)))
+    }
+
+    const showKey = (key: string) => {
+      if (!hidden.includes(key)) return
+      setHidden((list) => list.filter((item) => item !== key))
+    }
+
     createEffect(() => {
       if (!ready() || !recentReady()) return
       const servers = new Set(server.list.map(ServerConnection.key))
@@ -158,7 +170,9 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
             removeInfo(key)
           }
         }
+        const removed = store.filter((tab) => !servers.has(tab.server)).map(tabKey)
         setStore(() => next)
+        dropHidden(removed)
       }
       if (recent.key && !next.some((tab) => tabKey(tab) === recent.key)) setRecentKey(undefined)
       const keys = new Set(next.map(tabKey))
@@ -203,8 +217,23 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
       })
     })
 
+    let prunedHidden = false
+    createEffect(() => {
+      if (prunedHidden || !ready() || !hiddenReady()) return
+      prunedHidden = true
+      queueMicrotask(() => {
+        runWithOwner(undefined, () => {
+          untrack(() => {
+            const present = new Set(store.map(tabKey))
+            const next = hidden.filter((key) => present.has(key))
+            if (next.length !== hidden.length) setHidden(() => next)
+          })
+        })
+      })
+    })
+
     const activeGroup = createMemo(() => groups.groups.find((group) => group.id === groups.active) ?? groups.groups[0])
-    const visible = createMemo((prev: Tab[] = []) => {
+    const grouped = createMemo((prev: Tab[] = []) => {
       const ordered = (activeGroup()?.keys ?? []).flatMap((key) => {
         const tab = store.find((item) => tabKey(item) === key)
         return tab ? [tab] : []
@@ -212,12 +241,22 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
       if (prev.length === ordered.length && prev.every((tab, index) => tab === ordered[index])) return prev
       return ordered
     })
+    const visible = createMemo((prev: Tab[] = []) => {
+      const hiddenKeys = new Set(hidden)
+      const ordered = grouped().filter((tab) => !hiddenKeys.has(tabKey(tab)))
+      if (prev.length === ordered.length && prev.every((tab, index) => tab === ordered[index])) return prev
+      return ordered
+    })
 
     const navigateTab = (tab: Tab) => {
+      const key = tabKey(tab)
       const href = tabHref(tab)
-      debugTabs("navigate", { key: tabKey(tab), href, path: location.pathname })
-      setRecentKey(tabKey(tab))
-      navigate(href)
+      debugTabs("navigate", { key, href, path: location.pathname })
+      void startTransition(() => {
+        showKey(key)
+        setRecentKey(key)
+        navigate(href)
+      })
     }
 
     const addGroupKey = (key: string) => {
@@ -245,10 +284,12 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
       )
     }
 
-    const nextVisibleAfterClose = (key: string) => {
+    const nextShown = (exclude: string) => {
       const keys = activeGroup()?.keys ?? []
-      const index = keys.indexOf(key)
-      const nextKey = index === -1 ? undefined : (keys[index + 1] ?? keys[index - 1])
+      const index = keys.indexOf(exclude)
+      const blocked = new Set(hidden)
+      blocked.add(exclude)
+      const nextKey = [...keys.slice(index + 1), ...keys.slice(0, Math.max(index, 0)).reverse()].find((item) => !blocked.has(item))
       if (!nextKey) return null
       return store.find((tab) => tabKey(tab) === nextKey) ?? null
     }
@@ -260,12 +301,8 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
       const draftID = tab.type === "draft" ? tab.draftID : undefined
       const onIndex = location.pathname === "/session-index"
       const closingCurrent = recentKey() === key && location.pathname !== "/" && !onIndex
-      const nextTab = closingCurrent ? nextVisibleAfterClose(key) : undefined
+      const nextTab = closingCurrent ? nextShown(key) : undefined
       debugTabs("tab.remove", { key, index, closingCurrent, onIndex, next: nextTab ? tabKey(nextTab) : nextTab })
-      if (nextTab === null) {
-        setRecentKey(undefined)
-        navigate("/")
-      } else if (nextTab) navigateTab(nextTab)
       void startTransition(() => {
         setStore(
           produce((tabs) => {
@@ -274,6 +311,11 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
           }),
         )
         dropGroupKeys([key])
+        dropHidden([key])
+        if (nextTab === null) {
+          setRecentKey(undefined)
+          navigate("/")
+        } else if (nextTab) navigateTab(nextTab)
       })
       memory.remove(key)
       removeInfo(key)
@@ -302,6 +344,7 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
         setGroups("groups", (items) => items.map((group) => group.id === current.id ? { ...group, keys } : group))
       },
       visible,
+      grouped,
       groups,
       groupsReady,
       createGroup(name: string) {
@@ -366,6 +409,7 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
             }),
           )
           replaceGroupKey(`draft:${draftID}`, tabKey(next))
+          if (hidden.includes(`draft:${draftID}`)) setHidden((list) => list.map((key) => (key === `draft:${draftID}` ? tabKey(next) : key)))
           if (recent.key === `draft:${draftID}`) setRecentKey(tabKey(next))
           if (active) navigateTab(next)
         })
@@ -381,6 +425,25 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
         if (!tab) return
         if (tab.type === "session") updateClosed((stack) => pushClosedTab(stack, tab, index))
         removeTab(index)
+      },
+      hide(tab: Tab) {
+        const key = tabKey(tab)
+        const onIndex = location.pathname === "/session-index"
+        const hidingCurrent = recentKey() === key && location.pathname !== "/" && !onIndex
+        const nextTab = hidingCurrent ? nextShown(key) : undefined
+        debugTabs("tab.hide", { key, hidingCurrent, next: nextTab ? tabKey(nextTab) : nextTab })
+        void startTransition(() => {
+          if (!hidden.includes(key)) setHidden((list) => [...list, key])
+          if (!hidingCurrent) return
+          if (nextTab) navigateTab(nextTab)
+          else {
+            setRecentKey(undefined)
+            navigate("/")
+          }
+        })
+      },
+      isHidden(key: string) {
+        return hidden.includes(key)
       },
       reopenClosedTab() {
         if (!closedReady()) {
@@ -417,6 +480,7 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
         const removed = store.filter((tab) => tab.server === key).map(tabKey)
         setStore((tabs) => tabs.filter((tab) => tab.server !== key))
         dropGroupKeys(removed)
+        dropHidden(removed)
         for (const key of removed) memory.remove(key)
         for (const key of removed) removeInfo(key)
         if (recent.key && removed.includes(recent.key)) setRecentKey(undefined)
@@ -471,6 +535,7 @@ export const { use: useTabs, provider: TabsProvider } = createSimpleContext({
             }),
           )
           dropGroupKeys(removed)
+          dropHidden(removed)
           if (recent.key && removed.includes(recent.key)) setRecentKey(undefined)
         })
         for (const key of removed) memory.remove(key)

@@ -22,6 +22,7 @@ import { Question } from "@/question"
 import { Permission } from "@/permission"
 import { Todo } from "@/session/todo"
 import { Session } from "@/session/session"
+import { Peer } from "@/session/peer"
 import { SessionStatus } from "@/session/status"
 import { SessionRunState } from "@/session/run-state"
 import { SessionProcessor } from "@/session/processor"
@@ -79,6 +80,7 @@ export const AppLayer = AppNodeBuilderV1.build(
     Session.node,
     SessionProjector.node,
     SessionStatus.node,
+    Peer.node,
     BackgroundJob.node,
     RuntimeFlags.node,
     EventV2Bridge.node,

@@ -3,6 +3,7 @@ import { httpClient } from "@opencode-ai/core/effect/app-node-platform"
 import { Ripgrep } from "@opencode-ai/core/ripgrep"
 import { PlanExitTool } from "./plan"
 import { Session } from "@/session/session"
+import { Peer } from "@/session/peer"
 import { QuestionTool } from "./question"
 import { ShellTool } from "./shell"
 import { EditTool } from "./edit"
@@ -10,6 +11,7 @@ import { GlobTool } from "./glob"
 import { GrepTool } from "./grep"
 import { ReadTool } from "./read"
 import { TaskTool } from "./task"
+import { PeerTool } from "./peer"
 import { Database } from "@opencode-ai/core/database/database"
 import { TodoWriteTool } from "./todo"
 import { WebFetchTool } from "./webfetch"
@@ -37,6 +39,7 @@ import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner
 import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
 import { Format } from "../format"
 import { InstanceState } from "@/effect/instance-state"
+import { InstanceStore } from "@/project/instance-store"
 import { EffectBridge } from "@/effect/bridge"
 import { Question } from "../question"
 import { Todo } from "../session/todo"
@@ -100,6 +103,7 @@ const layer = Layer.effect(
 
     const invalid = yield* InvalidTool
     const task = yield* TaskTool
+    const peer = yield* PeerTool
     const read = yield* ReadTool
     const question = yield* QuestionTool
     const todo = yield* TodoWriteTool
@@ -215,6 +219,7 @@ const layer = Layer.effect(
           edit: Tool.init(edit),
           write: Tool.init(writetool),
           task: Tool.init(task),
+          peer: Tool.init(peer),
           fetch: Tool.init(webfetch),
           todo: Tool.init(todo),
           search: Tool.init(websearch),
@@ -238,6 +243,7 @@ const layer = Layer.effect(
             tool.edit,
             tool.write,
             tool.task,
+            tool.peer,
             tool.fetch,
             tool.todo,
             tool.search,
@@ -435,6 +441,7 @@ export const node = LayerNode.make({
     Agent.node,
     Skill.node,
     Session.node,
+    Peer.node,
     BackgroundJob.node,
     Provider.node,
     LSP.node,
@@ -448,6 +455,7 @@ export const node = LayerNode.make({
     RuntimeFlags.node,
     MCP.node,
     Database.node,
+    InstanceStore.node,
     Ripgrep.node,
   ],
 })

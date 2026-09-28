@@ -27,6 +27,7 @@ export function TabNavItem(props: {
   fallbackTitle?: string
   onRename: (title: string) => Promise<void>
   onClose: () => void
+  onHide: () => void
   onNavigate: () => void
   active?: boolean
   forceTruncate?: boolean
@@ -336,6 +337,7 @@ export function TabNavItem(props: {
           <MenuV2.Item disabled={!props.session() || rename.isPending} onSelect={() => setMenu("rename", true)}>
             {language.t("common.rename")}
           </MenuV2.Item>
+          <MenuV2.Item onSelect={props.onHide}>{language.t("common.hideTab")}</MenuV2.Item>
           <MenuV2.Item onSelect={props.onClose}>{language.t("common.closeTab")}</MenuV2.Item>
         </MenuV2.Context.Content>
       </MenuV2.Context.Portal>
@@ -350,6 +352,7 @@ export function DraftTabItem(props: {
   active?: boolean
   onNavigate: () => void
   onClose: () => void
+  onHide: () => void
   suppressNavigation?: () => boolean
   dragging?: boolean
   pressed?: boolean
@@ -362,15 +365,17 @@ export function DraftTabItem(props: {
     props.onClose()
   }
   return (
-    <div
-      ref={(el) => forwardTabRef(props.ref, el)}
-      data-titlebar-tab
-      data-slot="titlebar-tab-item"
-      data-active={props.active}
-      data-dragging={props.dragging}
-      data-state={props.active || props.pressed ? "pressed" : undefined}
-      class="group relative flex h-7 w-full min-w-0 flex-row items-center gap-1.5 overflow-hidden rounded-[6px] px-1.5 [container-type:inline-size] whitespace-nowrap"
-      classList={{ invisible: props.hidden }}
+    <MenuV2.Context>
+      <MenuV2.Context.Trigger
+        as="div"
+        data-titlebar-tab
+        data-slot="titlebar-tab-item"
+        data-active={props.active}
+        data-dragging={props.dragging}
+        data-state={props.active || props.pressed ? "pressed" : undefined}
+        ref={(el: HTMLDivElement) => forwardTabRef(props.ref, el)}
+        class="group relative flex h-7 w-full min-w-0 flex-row items-center gap-1.5 overflow-hidden rounded-[6px] px-1.5 [container-type:inline-size] whitespace-nowrap"
+        classList={{ invisible: props.hidden }}
       onMouseDown={(event) => {
         if (event.button !== MIDDLE_MOUSE_BUTTON) return
         event.preventDefault()
@@ -433,6 +438,13 @@ export function DraftTabItem(props: {
           aria-label={language.t("common.closeTab")}
         />
       </div>
-    </div>
+      </MenuV2.Context.Trigger>
+      <MenuV2.Context.Portal>
+        <MenuV2.Context.Content>
+          <MenuV2.Item onSelect={props.onHide}>{language.t("common.hideTab")}</MenuV2.Item>
+          <MenuV2.Item onSelect={props.onClose}>{language.t("common.closeTab")}</MenuV2.Item>
+        </MenuV2.Context.Content>
+      </MenuV2.Context.Portal>
+    </MenuV2.Context>
   )
 }

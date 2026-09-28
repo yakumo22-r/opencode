@@ -2,6 +2,7 @@ import { getFilename } from "@opencode-ai/core/util/path"
 import { ButtonV2 } from "@opencode-ai/ui/v2/button-v2"
 import { Icon as IconV2 } from "@opencode-ai/ui/v2/icon"
 import { IconButtonV2 } from "@opencode-ai/ui/v2/icon-button-v2"
+import { useDialog } from "@opencode-ai/ui/context/dialog"
 import { useNavigate } from "@solidjs/router"
 import { createMemo, createSignal, For, Show } from "solid-js"
 import { useLanguage } from "@/context/language"
@@ -10,6 +11,7 @@ import { useNotification } from "@/context/notification"
 import { useServer } from "@/context/server"
 import { useServerSync } from "@/context/server-sync"
 import { tabKey, useTabs } from "@/context/tabs"
+import { DialogCoordination } from "@/pages/coordination"
 import { ProjectIcon } from "@/pages/layout/sidebar-items"
 import { pathKey } from "@/utils/path-key"
 import { sessionTitle } from "@/utils/session-title"
@@ -22,6 +24,7 @@ type SessionIndexRecord = {
   project: LocalProject | undefined
   projectName: string
   status: "working" | "permission" | "error" | "unread" | "open"
+  hidden: boolean
 }
 
 export function SessionIndexPage() {
@@ -32,6 +35,7 @@ export function SessionIndexPage() {
   const notification = useNotification()
   const language = useLanguage()
   const navigate = useNavigate()
+  const dialog = useDialog()
   const [selectedProject, setSelectedProject] = createSignal<string>()
   const [newGroupName, setNewGroupName] = createSignal("")
 
@@ -44,7 +48,7 @@ export function SessionIndexPage() {
   })
 
   const records = createMemo<SessionIndexRecord[]>(() =>
-    (tabs.visible() ?? []).flatMap((tab) => {
+    (tabs.grouped() ?? []).flatMap((tab) => {
       if (tab.type !== "session") return []
       const info = tabs.info[tabKey(tab)]
       const session = tab.server === server.key ? serverSync().session.peek(tab.sessionId) : undefined
@@ -71,6 +75,7 @@ export function SessionIndexPage() {
         project,
         projectName: project?.name || (sessionDirectory ? getFilename(project?.worktree ?? directory) : language.t("session.index.unknownProject")),
         status,
+        hidden: tabs.isHidden(tabKey(tab)),
       }
     }),
   )
@@ -92,6 +97,9 @@ export function SessionIndexPage() {
             <h1 class="text-xl font-[560] text-v2-text-text-strong">{language.t("session.index.title")}</h1>
             <p class="mt-1 text-sm text-v2-text-text-muted">{language.t("session.index.description")}</p>
           </div>
+          <ButtonV2 variant="ghost-muted" size="normal" onClick={() => dialog.show(() => <DialogCoordination />)}>
+            {language.t("peer.title")}
+          </ButtonV2>
           <ButtonV2 variant="ghost-muted" size="normal" icon="close" onClick={() => navigate("/")}>
             {language.t("common.close")}
           </ButtonV2>
@@ -172,16 +180,20 @@ export function SessionIndexPage() {
                     <div class="flex items-center gap-2 text-sm text-v2-text-text-muted">
                       <Show
                         when={record.project}
+                        keyed
                         fallback={<div class="size-6 rounded bg-v2-background-bg-layer-03" />}
                       >
-                        {(project) => <ProjectIcon project={project()} class="size-6" />}
+                        {(project) => <ProjectIcon project={project} class="size-6" />}
                       </Show>
                       <span class="truncate">{record.projectName}</span>
                     </div>
                     <h2 class="mt-4 line-clamp-2 text-base font-[560] text-v2-text-text-base">{record.title}</h2>
                   </button>
                     <div class="mt-4 flex items-center justify-between gap-3">
-                      <SessionStatus status={record.status} />
+                       <SessionStatus status={record.status} />
+                       <Show when={record.hidden}>
+                         <span class="text-xs text-v2-text-text-muted">{language.t("session.index.hidden")}</span>
+                       </Show>
                       <select
                         class="max-w-32 truncate rounded border border-v2-border-border-weak bg-v2-background-bg-layer-02 px-1.5 py-1 text-xs text-v2-text-text-muted"
                         value={activeGroup()?.id}

@@ -1,7 +1,7 @@
 import "@/index.css"
 import * as Sentry from "@sentry/solid"
 import { I18nProvider } from "@opencode-ai/ui/context"
-import { DialogProvider } from "@opencode-ai/ui/context/dialog"
+import { DialogProvider, useDialog } from "@opencode-ai/ui/context/dialog"
 import { FileComponentProvider } from "@opencode-ai/ui/context/file"
 import { File } from "@opencode-ai/session-ui/file"
 import { Font } from "@opencode-ai/ui/font"
@@ -69,6 +69,7 @@ import { SessionPage, SessionRouteErrorBoundary, TargetSessionRouteContent } fro
 import { NewHome } from "@/pages/home"
 import { LegacyHome } from "@/pages/home/legacy-home"
 import { SessionIndexPage } from "@/pages/session-index"
+import { DialogCoordination } from "@/pages/coordination"
 import { WorkflowRunPage } from "@/pages/workflow-run"
 import { WorkflowHomePage } from "@/pages/workflow-home"
 import { WorkflowTemplatePage } from "@/pages/workflow-template"
@@ -333,6 +334,8 @@ function DesktopCommands() {
   const navigate = useNavigate()
   const location = useLocation()
   const tabs = useTabs()
+  const dialog = useDialog()
+  let coordination = false
 
   command.register("desktop", () => {
     const commands: CommandOption[] = []
@@ -372,13 +375,35 @@ function DesktopCommands() {
       id: "session.index",
       title: language.t("command.session.index"),
       category: language.t("command.category.session"),
-      keybind: "ctrl+shift+space",
+      keybind: "shift+space",
       onSelect: () => {
         if (location.pathname === "/session-index") {
           navigate(-1)
           return
         }
         navigate("/session-index")
+      },
+    })
+    commands.push({
+      id: "session.peer",
+      title: language.t("command.session.peer"),
+      category: language.t("command.category.session"),
+      keybind: "ctrl+e",
+      onSelect: () => {
+        if (coordination) {
+          coordination = false
+          dialog.close()
+          return
+        }
+        const current = tabs.store.find((tab) => tab.type === "session" && location.pathname.includes(tab.sessionId))
+        const sessionID = current?.type === "session" ? current.sessionId : undefined
+        coordination = true
+        dialog.show(
+          () => <DialogCoordination sessionID={sessionID} />,
+          () => {
+            coordination = false
+          },
+        )
       },
     })
     if (platform.platform === "desktop" && platform.exportDebugLogs) {

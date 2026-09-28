@@ -1,0 +1,5 @@
+AI Agent cooperation system. One server instance shares a task context, a system directory, and a member duty table. Each member keeps its own project directory.
+
+create starts a cooperation and makes this session the admin. join adds this session to a cooperation id. kick removes a member. context replaces the shared task context. duty sets one member's responsibility. list shows the table. send assigns a task to a member and returns immediately. status reads the team. configure suggests when replies are ready. receive takes finished replies in manual mode.
+
+Only the admin session may edit context, duties, membership removal, and task assignment. Do not poll. Do not call this tool from a session that is answering an assigned task.

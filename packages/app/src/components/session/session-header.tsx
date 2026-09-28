@@ -8,7 +8,7 @@ import { Spinner } from "@opencode-ai/ui/spinner"
 import { showToast } from "@/utils/toast"
 import { Tooltip, TooltipKeybind } from "@opencode-ai/ui/tooltip"
 import { getFilename } from "@opencode-ai/core/util/path"
-import { createEffect, createMemo, createSignal, For, onMount, Show } from "solid-js"
+import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import { createMediaQuery } from "@solid-primitives/media"
 import { Portal } from "solid-js/web"
@@ -26,6 +26,7 @@ import { messageAgentColor } from "@/utils/agent"
 import { decode64 } from "@/utils/base64"
 import { fileManagerApp } from "@/utils/file-manager"
 import { Persist, persisted } from "@/utils/persist"
+import { authTokenFromCredentials } from "@/utils/server"
 import { StatusPopover, StatusPopoverV2 } from "../status-popover"
 import { IconButtonV2 } from "@opencode-ai/ui/v2/icon-button-v2"
 import { Icon as IconV2 } from "@opencode-ai/ui/v2/icon"
@@ -440,6 +441,7 @@ export function SessionHeader() {
                     </div>
                   </Show>
                   <div class="flex items-center gap-1">
+                    <CooperationChip />
                     <Show when={status()}>
                       <Tooltip placement="bottom" value={language.t("status.popover.trigger")}>
                         <StatusPopover />
@@ -526,11 +528,67 @@ type SessionHeaderV2ActionsState = {
   onReviewToggle: () => void
 }
 
+function CooperationChip() {
+  const command = useCommand()
+  const server = useServer()
+  const language = useLanguage()
+  const { params } = useSessionLayout()
+  const [state, setState] = createSignal<{ known: boolean; title?: string }>({ known: false })
+  const directory = createMemo(() => decode64(params.dir) ?? "")
+  const label = () => {
+    const current = state()
+    if (!current.known) return ""
+    if (current.title) return language.t("peer.joined", { title: current.title })
+    return language.t("peer.notJoined")
+  }
+
+  createEffect(() => {
+    const id = params.id
+    const dir = directory()
+    const conn = server.current
+    if (!id || !dir || !conn) return
+    let stop = false
+    const load = async () => {
+      const url = new URL("/experimental/cooperate", conn.http.url)
+      url.searchParams.set("directory", dir)
+      url.searchParams.set("sessionID", id)
+      const headers = new Headers()
+      if (conn.http.password) {
+        headers.set("Authorization", `Basic ${authTokenFromCredentials({ username: conn.http.username, password: conn.http.password })}`)
+      }
+      const response = await fetch(url, { headers }).catch(() => undefined)
+      if (stop || !response?.ok) return
+      const data = (await response.json()) as { team?: { title?: string } }
+      setState({ known: true, title: data.team?.title })
+    }
+    void load()
+    const timer = setInterval(() => void load(), 4000)
+    onCleanup(() => {
+      stop = true
+      clearInterval(timer)
+    })
+  })
+
+  return (
+    <Show when={params.id && state().known}>
+      <button
+        type="button"
+        class="flex h-6 max-w-44 items-center truncate rounded-md border border-border-weak-base px-2 text-12-regular text-text-strong"
+        onClick={() => command.trigger("session.peer")}
+        aria-label={label()}
+      >
+        {label()}
+      </button>
+    </Show>
+  )
+}
+
 function SessionHeaderV2Actions(props: { state: SessionHeaderV2ActionsState }) {
   const language = useLanguage()
 
   return (
     <div class="flex items-center gap-2">
+      <CooperationChip />
       <Show when={props.state.statusVisible}>
         <Tooltip placement="bottom" value={props.state.statusLabel}>
           <StatusPopoverV2 />

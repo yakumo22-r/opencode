@@ -685,9 +685,9 @@ export function persisted<T>(
     const inner = storage.setItem.bind(storage)
     storage.setItem = (key: string, value: string) => {
       const start = Date.now()
-      console.warn("[persist-debug] start", { name: config.key, bytes: value.length })
+      console.warn(`[persist-debug] start ${JSON.stringify({ name: config.key, bytes: value.length })}`)
       const result = inner(key, value)
-      const done = () => console.warn("[persist-debug] done", { name: config.key, ms: Date.now() - start, bytes: value.length })
+      const done = () => console.warn(`[persist-debug] done ${JSON.stringify({ name: config.key, ms: Date.now() - start, bytes: value.length })}`)
       if (result && typeof result.then === "function") return result.finally(done)
       done()
       return result

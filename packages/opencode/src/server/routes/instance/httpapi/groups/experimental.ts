@@ -2,6 +2,7 @@ import { AccountID, OrgID } from "@/account/schema"
 import { MCP } from "@/mcp"
 
 import { Session } from "@/session/session"
+import { Peer } from "@/session/peer"
 import { SessionID } from "@/session/schema"
 import { Worktree } from "@/worktree"
 import { NonNegativeInt } from "@opencode-ai/core/schema"
@@ -99,6 +100,8 @@ export const ExperimentalPaths = {
   session: "/experimental/session",
   sessionBackground: "/experimental/session/:sessionID/background",
   resource: "/experimental/resource",
+  cooperate: "/experimental/cooperate",
+  cooperateAct: "/experimental/cooperate/act",
 } as const
 
 export const ExperimentalApi = HttpApi.make("experimental")
@@ -243,6 +246,42 @@ export const ExperimentalApi = HttpApi.make("experimental")
             summary: "Background subagents",
             description:
               "Detach any synchronous subagents currently blocking the session and continue them in the background.",
+          }),
+        ),
+        HttpApiEndpoint.get("cooperate", ExperimentalPaths.cooperate, {
+          query: Schema.Struct({ ...WorkspaceRoutingQueryFields, sessionID: SessionID }),
+          success: described(Peer.Result, "Cooperation for this session"),
+        }).annotateMerge(
+          OpenApi.annotations({
+            identifier: "experimental.cooperate.get",
+            summary: "Get cooperation",
+            description: "Read the AI Agent cooperation this session belongs to.",
+          }),
+        ),
+        HttpApiEndpoint.post("cooperateAct", ExperimentalPaths.cooperateAct, {
+          query: WorkspaceRoutingQuery,
+          payload: Schema.Struct({
+            action: Schema.Literals(["create", "join", "invite", "kick", "drop", "note", "archive", "context", "duty", "configure", "receive", "remove", "saveStructure", "removeStructure"]),
+            sessionID: SessionID,
+            teamID: Schema.optional(Schema.String),
+            human: Schema.optional(Schema.Boolean),
+            note: Schema.optional(Schema.String),
+            archived: Schema.optional(Schema.Boolean),
+            targetID: Schema.optional(SessionID),
+            title: Schema.optional(Schema.String),
+            systemDirectory: Schema.optional(Schema.String),
+            context: Schema.optional(Schema.String),
+            duty: Schema.optional(Schema.String),
+            condition: Schema.optional(Peer.Condition),
+            mode: Schema.optional(Peer.Mode),
+            itemID: Schema.optional(Schema.String),
+          }),
+          success: described(Peer.Result, "Cooperation action result"),
+        }).annotateMerge(
+          OpenApi.annotations({
+            identifier: "experimental.cooperate.act",
+            summary: "Update cooperation",
+            description: "Create, join, edit context, assign duties, or adjust the wait pool.",
           }),
         ),
         HttpApiEndpoint.get("resource", ExperimentalPaths.resource, {

@@ -7,6 +7,7 @@ import { RuntimeFlags } from "@/effect/runtime-flags"
 import { MCP } from "@/mcp"
 import { Project } from "@/project/project"
 import { Session } from "@/session/session"
+import { Peer } from "@/session/peer"
 import type { SessionID } from "@/session/schema"
 import { ToolJsonSchema } from "@/tool/json-schema"
 import { ToolRegistry } from "@/tool/registry"
@@ -33,6 +34,7 @@ export const experimentalHandlers = HttpApiBuilder.group(InstanceHttpApi, "exper
     const registry = yield* ToolRegistry.Service
     const worktreeSvc = yield* Worktree.Service
     const sessions = yield* Session.Service
+    const peers = yield* Peer.Service
     const background = yield* BackgroundJob.Service
     const flags = yield* RuntimeFlags.Service
 
@@ -188,6 +190,43 @@ export const experimentalHandlers = HttpApiBuilder.group(InstanceHttpApi, "exper
       .handle("worktreeReset", worktreeReset)
       .handle("session", session)
       .handle("sessionBackground", sessionBackground)
+      .handle("cooperate", (ctx: { query: { sessionID: SessionID } }) => peers.current(ctx.query.sessionID))
+      .handle("cooperateAct", (ctx: {
+        payload: {
+          action: "create" | "join" | "invite" | "kick" | "drop" | "note" | "archive" | "context" | "duty" | "configure" | "receive" | "remove" | "saveStructure" | "removeStructure"
+          sessionID: SessionID
+          teamID?: string
+          human?: boolean
+          note?: string
+          archived?: boolean
+          targetID?: SessionID
+          title?: string
+          systemDirectory?: string
+          context?: string
+          duty?: string
+          condition?: Peer.Condition
+          mode?: Peer.Mode
+          itemID?: string
+        }
+      }) => {
+        const body = ctx.payload
+        const scope = { actorID: body.sessionID, teamID: body.teamID, human: body.human }
+        if (body.action === "create") return peers.create({ sessionID: body.sessionID, title: body.title ?? "AI Agent cooperation", systemDirectory: body.systemDirectory ?? "", context: body.context, note: body.note, condition: body.condition, mode: body.mode, duty: body.duty })
+        if (body.action === "join") return peers.join({ sessionID: body.sessionID, teamID: body.teamID ?? "" })
+        if (body.action === "invite" && body.targetID) return peers.invite({ ...scope, sessionID: body.targetID })
+        if (body.action === "kick" && body.targetID) return peers.kick({ ...scope, sessionID: body.targetID })
+        if (body.action === "drop") return peers.drop(scope)
+        if (body.action === "note") return peers.setNote({ ...scope, note: body.note ?? "" })
+        if (body.action === "archive") return peers.archive({ ...scope, archived: body.archived === true })
+        if (body.action === "context") return peers.setContext({ ...scope, context: body.context ?? "" })
+        if (body.action === "duty" && body.targetID) return peers.setDuty({ ...scope, sessionID: body.targetID, duty: body.duty ?? "" })
+        if (body.action === "configure") return peers.configure({ ...scope, condition: body.condition, mode: body.mode, lock: body.human ? false : true })
+        if (body.action === "receive") return peers.receive(body.sessionID)
+        if (body.action === "remove" && body.itemID) return peers.remove({ ...scope, itemID: body.itemID })
+        if (body.action === "saveStructure") return peers.saveStructure({ ...scope, name: body.title })
+        if (body.action === "removeStructure" && body.itemID) return peers.removeStructure(body.itemID)
+        return Effect.succeed({ shouldWake: false, error: "Invalid cooperation action" })
+      })
       .handle("resource", resource)
   }),
 )

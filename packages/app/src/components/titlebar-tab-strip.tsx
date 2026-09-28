@@ -32,6 +32,7 @@ function SessionTabSlot(props: {
   onRename: (title: string) => Promise<void>
   onNavigate: (element: HTMLDivElement) => void
   onClose: () => void
+  onHide: () => void
 }) {
   const sortable = useSortable({
     get id() {
@@ -62,6 +63,7 @@ function SessionTabSlot(props: {
         onRename={props.onRename}
         onNavigate={() => props.onNavigate(ref)}
         onClose={props.onClose}
+        onHide={props.onHide}
         active={props.active()}
         forceTruncate={props.forceTruncate}
         dragging={sortable.isDragSource()}
@@ -80,6 +82,7 @@ function SessionTabEntry(props: {
   onVisibleChange: (visible: boolean) => void
   onNavigate: (element: HTMLDivElement) => void
   onClose: () => void
+  onHide: () => void
 }) {
   const tabs = useTabs()
   const language = useLanguage()
@@ -162,6 +165,7 @@ function SessionTabEntry(props: {
         onRename={rename}
         onNavigate={props.onNavigate}
         onClose={props.onClose}
+        onHide={props.onHide}
       />
     </Show>
   )
@@ -175,6 +179,7 @@ function DraftTabSlot(props: {
   title: string
   onNavigate: (element: HTMLDivElement) => void
   onClose: () => void
+  onHide: () => void
 }) {
   const sortable = useSortable({
     get id() {
@@ -202,6 +207,7 @@ function DraftTabSlot(props: {
         title={props.title}
         onNavigate={() => props.onNavigate(ref)}
         onClose={props.onClose}
+        onHide={props.onHide}
         active={props.active()}
         dragging={sortable.isDragSource()}
       />
@@ -215,6 +221,7 @@ export function TitlebarTabStrip(props: {
   forceTruncate: boolean
   onNavigate: (tab: Tab, el?: HTMLDivElement) => void
   onClose: (tab: Tab) => void
+  onHide: (tab: Tab) => void
   onReorder: (keys: string[]) => void
   onOverflowChange: (overflowing: boolean) => void
 }) {
@@ -360,6 +367,7 @@ export function TitlebarTabStrip(props: {
                         props.onNavigate(tab, element)
                       }}
                       onClose={() => props.onClose(tab)}
+                      onHide={() => props.onHide(tab)}
                     />
                   )
                 }
@@ -376,6 +384,7 @@ export function TitlebarTabStrip(props: {
                       props.onNavigate(tab, element)
                     }}
                     onClose={() => props.onClose(tab)}
+                    onHide={() => props.onHide(tab)}
                   />
                 )
               }}

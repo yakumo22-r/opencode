@@ -44,5 +44,5 @@ Before distributing or replacing a daily-use executable:
 1. Close all OpenCode windows.
 2. Start `dist/opencode-desktop-win-x64.exe`.
 3. Confirm it shows the same existing workspaces and sessions as the official installation.
-4. Confirm `Ctrl+Shift+Space` opens and closes the session index.
+4. Confirm `Shift+Space` opens and closes the session index.
 5. Confirm a normal prompt can be sent successfully.
